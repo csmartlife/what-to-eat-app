@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>What to Eat Today — HKU Version</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--ink:#15181A;
+--surface:#20241F;
+--surface-2:#2A2F27;
+--line:#3A4038;
+--brass:#F2C230;
+--good:#3DDC84;
+--paper:#F4EFE4;
+--muted:#9FA79C;
+--radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+background:var(--ink);
+color:var(--paper);
+font-family:'Inter',system-ui,sans-serif;
+-webkit-font-smoothing:antialiased;
+min-height:100vh;
+}
+#app{max-width:760px;margin:0 auto;padding:28px 18px 80px;}
+a{color:var(--brass);}a:hover{color:#ffd35c;}
+.eyebrow{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;
+font-size:12px;
+letter-spacing:0.12em;
+text-transform:uppercase;
+color:var(--brass);
+margin:0 0 6px;
+}
+h1{
+font-family:'Bebas Neue',sans-serif;
+font-weight:400;
+font-size:44px;
+letter-spacing:0.02em;
+line-height:1;
+margin:0 0 6px;
+color:var(--paper);
+}
+.subtitle{
+color:var(--muted);
+font-size:14.5px;
+margin:0 0 4px;
+max-width:46ch;
+overflow-wrap:anywhere;
+}
+.intro-name{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 8px;}
+.name-link{
+border:0;background:none;color:var(--muted);font:inherit;font-size:12px;
+min-height:32px;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+}
+.name-link:hover{color:var(--paper);}
+.usage-guide{margin:0 0 14px;}
+.usage-guide summary,.card-records summary{
+min-height:44px;padding:13px 0;cursor:pointer;color:var(--paper);
+font-size:13px;font-weight:600;line-height:18px;
+}
+.usage-guide summary{width:fit-content;}
+.usage-guide summary::marker,.card-records summary::marker{color:var(--brass);}
+summary:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+.guide-steps{
+max-width:62ch;margin:0;padding:12px 16px 12px 36px;
+background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+color:var(--muted);font-size:13px;line-height:1.55;
+}
+.guide-steps li+li{margin-top:5px;}
+.guide-steps strong{color:var(--paper);}
+/* ---- Route line (campus filter) ---- */
+.route-wrap{
+background:var(--surface);
+border:1px solid var(--line);
+border-radius:var(--radius);
+padding:22px 18px 16px;
+margin-bottom:20px;
+}
+.route-track{
+position:relative;
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+margin:6px 6px 0;
+}
+.route-track::before{
+content:"";
+position:absolute;
+top:9px;
+left:8%;
+right:8%;
+height:3px;
+border-radius:3px;
+background:linear-gradient(90deg,#F4433C,#FFD23F,#5FE06B,#3FC1FF);
+z-index:0;
+}
+.stop{
+position:relative;
+z-index:1;
+background:none;
+border:none;
+color:var(--paper);
+font-family:'Inter',sans-serif;
+cursor:pointer;
+display:flex;
+flex-direction:column;
+align-items:center;
+width:31%;
+padding:0;
+text-align:center;
+}
+.stop-dot{
+width:19px;height:19px;border-radius:50%;
+background:var(--ink);
+border:2.5px solid var(--brass);
+margin-bottom:10px;
+display:grid;place-items:center;
+transition:transform .15s ease, background .15s ease;
+}
+.stop[aria-pressed="true"] .stop-dot{background:var(--brass);transform:scale(1.15);}
+.stop[aria-pressed="true"] .stop-dot::after{content:'\2713';color:var(--ink);font-size:11px;font-weight:700;line-height:1;}
+.stop-name{font-size:13px;font-weight:600;line-height:1.25;}
+.stop-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.stop-count{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;
+font-size:11px;color:var(--brass);margin-top:4px;
+}
+.stop:hover .stop-name{color:var(--brass);}
+.route-all{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:0 10px;margin-top:14px;}
+.route-hint{font-size:11.5px;color:var(--muted);}
+.route-all button{
+background:none;border:none;color:var(--muted);
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:11.5px;
+letter-spacing:.04em;cursor:pointer;text-decoration:underline;
+text-underline-offset:3px;min-height:26px;
+}
+.route-all button:hover{color:var(--paper);}
+/* ---- Filters ---- */
+.filters{
+display:flex;flex-wrap:wrap;gap:8px;
+margin-bottom:18px;
+}
+select{
+background:var(--surface);
+color:var(--paper);
+border:1px solid var(--line);
+border-radius:7px;
+padding:12px 10px;
+font-family:'Inter',sans-serif;
+font-size:13.5px;
+flex:1 1 150px;
+min-height:44px;
+}
+select:focus-visible, button:focus-visible, .card:focus-visible{
+outline:2px solid var(--brass);outline-offset:2px;
+}
+/* ---- Surprise Me ---- */
+.surprise-btn{
+width:100%;
+border:none;
+border-radius:var(--radius);
+padding:16px;
+font-family:'Bebas Neue',sans-serif;
+font-size:22px;
+letter-spacing:.03em;
+cursor:pointer;
+margin-bottom:16px;
+transition:transform .1s ease, background .15s ease;
+}
+.surprise-btn:active{transform:scale(0.99);}
+.sheet-backdrop{
+position:fixed;inset:0;z-index:20;
+background:rgba(0,0,0,.6);
+animation:fade .2s ease;
+}
+@keyframes fade{from{opacity:0;}to{opacity:1;}}
+.featured{
+position:fixed;z-index:21;
+left:50%;bottom:0;transform:translateX(-50%);
+width:100%;max-width:600px;
+max-height:82dvh;
+display:flex;flex-direction:column;overflow:hidden;
+background:var(--surface-2);
+border:1px solid var(--brass);
+border-bottom:none;
+border-radius:16px 16px 0 0;
+padding:14px 18px calc(18px + env(safe-area-inset-bottom));
+animation:pop .25s ease;
+}
+.sheet-grab{
+width:40px;height:4px;border-radius:2px;
+background:var(--line);margin:0 auto 12px;flex:none;
+}
+@media (min-width:700px){
+.featured{
+/* Anchor the footer while different cards change the height above it. */
+--featured-bottom:max(16px, calc(50dvh - 160px));
+bottom:var(--featured-bottom);
+width:calc(100% - 40px);
+border-bottom:1px solid var(--brass);
+border-radius:var(--radius);
+max-height:min(86dvh, calc(100dvh - var(--featured-bottom) - 16px));
+}
+.sheet-grab{display:none;}
+}
+@keyframes pop{from{opacity:0;transform:translateX(-50%) translateY(24px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.featured-label{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;
+font-size:11px;color:var(--brass);letter-spacing:.08em;
+text-transform:uppercase;margin:0 0 8px;flex:none;
+}
+.featured-body{
+flex:0 1 auto;min-height:0;overflow:auto;scrollbar-gutter:stable;overscroll-behavior:contain;
+padding:2px;margin:-2px;
+}
+.featured-actions{display:flex;flex:none;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.featured-status{
+position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
+white-space:nowrap;
+}
+.btn-secondary{
+background:none;border:1px solid var(--line);color:var(--paper);
+border-radius:7px;padding:12px 16px;font-size:13px;cursor:pointer;
+font-family:'Inter',sans-serif;min-height:44px;flex:1;
+}
+.btn-secondary:hover{border-color:var(--brass);}
+.btn-secondary:disabled{opacity:.55;cursor:not-allowed;border-color:var(--line);}
+.pick-action{background:var(--brass);color:var(--ink);}
+.pick-action:enabled{border-color:transparent;}
+.pick-action:enabled:hover{background:#ffd35c;}
+.pick-action:disabled{opacity:.4;cursor:not-allowed;}
+.name-dialog{
+width:min(calc(100% - 32px), 390px);max-height:calc(100dvh - 32px);
+padding:20px;border:1px solid var(--line);border-radius:14px;
+background:var(--surface-2);color:var(--paper);
+}
+.name-dialog::backdrop{background:rgba(0,0,0,.55);}
+.name-dialog-header{display:flex;align-items:baseline;justify-content:space-between;gap:4px 12px;flex-wrap:wrap;}
+.name-dialog h2{font-size:20px;line-height:1.25;margin:0;}
+.name-dialog label{display:block;margin:14px 0 6px;font-size:13px;}
+.name-dialog input{
+width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:7px;
+background:var(--surface);color:var(--paper);font:inherit;font-size:16px;
+}
+.name-dialog input:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+.name-dialog input::placeholder{color:var(--muted);}
+.name-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+/* ---- Cards ---- */
+.count-bar{
+display:flex;justify-content:space-between;align-items:baseline;
+flex-wrap:wrap;gap:6px 12px;
+margin-bottom:12px;
+}
+.count-bar .n{font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:12.5px;color:var(--muted);}
+.count-bar .n strong{color:var(--paper);}
+.reset-link{
+background:none;border:none;color:var(--muted);font-size:11px;
+text-decoration:underline;cursor:pointer;font-family:'Inter',sans-serif;
+}
+.list{display:flex;flex-direction:column;gap:10px;}
+.card{
+background:var(--surface);
+border:1px solid var(--line);
+border-left:4px solid var(--accent, var(--brass));
+border-radius:var(--radius);
+padding:14px 14px 12px;
+transition:box-shadow .15s ease;
+}
+.card.been{box-shadow:0 0 0 1px var(--good) inset;}
+.card.dim{opacity:.55;}
+.card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+.card-records{margin:8px 0 -6px;border-top:1px solid var(--line);}
+.card-records[open]{padding-bottom:6px;}
+.card-name{font-size:15.5px;font-weight:700;margin:0 0 3px;}
+.card-name a{color:inherit;text-decoration:none;}
+.card-name a:hover{color:var(--accent, var(--brass));}
+.tagrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0;}
+.tag{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;
+font-size:10.5px;
+padding:2.5px 7px;
+border-radius:20px;
+border:1px solid var(--line);
+color:var(--muted);
+white-space:nowrap;
+}
+.tag.cuisine{color:var(--accent, var(--brass));border-color:var(--accent, var(--brass));background:color-mix(in srgb, var(--accent, var(--brass)) 14%, transparent);}
+.tag.service{white-space:normal;color:var(--paper);background:var(--surface-2);}
+.tag.status{color:#FF8A3D;border-color:#5a3a20;}
+.sig{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.4;}
+.bldg{font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:10.5px;color:var(--muted);
+margin:5px 0 0;line-height:1.4;opacity:.85;}
+.card-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.dir-link{
+text-decoration:none;
+color:var(--muted);
+border:1px solid var(--line);
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;
+font-size:11.5px;letter-spacing:.03em;
+padding:10px 14px;border-radius:22px;
+display:inline-flex;align-items:center;gap:5px;
+min-height:40px;
+transition:border-color .15s ease,color .15s ease;
+}
+.dir-link:hover{border-color:var(--brass);color:var(--brass);}
+.dir-link.order{color:var(--good);border-color:#2a5a40;}
+.dir-link.order:hover{border-color:var(--good);}
+.been-wrap{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;}
+.been-btn{
+flex-shrink:0;
+background:rgba(255,255,255,.03);
+border:1.5px dashed #5F6A5B;
+color:#7C877A;
+width:44px;height:44px;border-radius:50%;
+cursor:pointer;font-size:19px;line-height:1;
+display:flex;align-items:center;justify-content:center;
+transition:background .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease;
+}
+.been-btn::before{content:'\2713';opacity:.5;}
+.been-btn:hover{border-color:var(--good);color:var(--good);}
+.been-btn.on{
+background:var(--good);border-style:solid;border-color:var(--good);color:var(--ink);
+box-shadow:0 0 0 4px color-mix(in srgb, var(--good) 20%, transparent);
+}
+.been-btn.on::before{opacity:1;font-weight:700;}
+.been-cap{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:9.5px;letter-spacing:.04em;
+color:#7C877A;text-align:center;line-height:1;
+}
+.been-cap.on{color:var(--good);}
+
+/* ---- Cover photo ---- */
+.thumb{
+flex-shrink:0;width:52px;height:52px;border-radius:8px;overflow:hidden;
+border:1px solid var(--line);background:var(--surface-2);
+display:flex;align-items:center;justify-content:center;position:relative;
+}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.thumb.noimg::after{
+content:attr(data-init);
+font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.06em;
+color:var(--muted);
+}
+.thumb a{display:block;width:100%;height:100%;}
+.rate-clear{
+background:none;border:1px solid var(--line);color:var(--muted);
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:10.5px;
+padding:4px 9px;border-radius:20px;cursor:pointer;min-height:28px;
+}
+.rate-clear:hover{border-color:var(--bad,#E4572E);color:var(--bad,#E4572E);}
+.rate-tip{
+flex-basis:100%;font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;
+font-size:10px;color:var(--muted);opacity:.85;margin:2px 0 0;
+}
+html[data-theme="light"] .thumb{background:#F4F0E6;border-color:#DFD8C8;}
+html[data-theme="light"] .rate-clear{background:#FFFFFF;border-color:#DFD8C8;}
+/* ---- Rating ---- */
+.rate-row{
+display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+padding:8px 10px;
+background:var(--surface-2);
+border:1px solid var(--line);
+border-radius:9px;
+}
+.rate-label{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:9.5px;letter-spacing:.08em;
+text-transform:uppercase;color:var(--muted);width:100%;margin:0 0 2px;
+}
+.stars{display:flex;gap:2px;flex-wrap:wrap;}
+.star{
+background:none;border:none;cursor:pointer;padding:2px;
+font-size:22px;line-height:1;color:#5F6A5B;
+min-width:32px;min-height:32px;
+transition:color .1s ease, transform .1s ease;
+}
+.star.lit{color:var(--brass);}
+.star:hover{transform:scale(1.15);}
+.rate-meta{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:11px;color:var(--muted);
+}
+.rate-meta strong{color:var(--brass);font-weight:500;}
+/* ---- Comment / note ---- */
+.note-row{margin-top:8px;}
+.note-btn{
+background:none;border:1px dashed var(--line);color:var(--muted);
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:11.5px;letter-spacing:.03em;
+padding:9px 13px;border-radius:22px;cursor:pointer;
+display:inline-flex;align-items:center;gap:6px;min-height:38px;
+transition:border-color .15s ease,color .15s ease;
+}
+.note-btn:hover{border-color:var(--brass);color:var(--brass);}
+.photo-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
+.photo-thumb{position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--line);}
+.photo-view{display:block;width:100%;height:100%;border:0;background:none;padding:0;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;cursor:pointer;display:block;}
+.photo-del{position:absolute;top:1px;right:1px;width:16px;height:16px;line-height:14px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer;padding:0;}
+.photo-add{position:relative;width:56px;height:56px;border-radius:8px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--muted);cursor:pointer;flex-shrink:0;overflow:hidden;}
+.photo-add:hover{border-color:var(--brass);color:var(--brass);}
+.photo-add span{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;}
+.photo-add input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.record-tools{display:flex;flex-wrap:wrap;gap:8px 14px;}
+.photo-preview img{display:block;max-width:100%;max-height:65dvh;margin-bottom:12px;}
+.note-edit{margin-top:8px;}
+.note-edit textarea{
+width:100%;box-sizing:border-box;
+background:var(--ink);color:var(--paper);
+border:1px solid var(--line);border-radius:9px;
+padding:10px 11px;font-family:'Inter',system-ui,sans-serif;font-size:13px;line-height:1.45;
+resize:vertical;min-height:76px;
+}
+.note-edit textarea:focus{outline:none;border-color:var(--brass);}
+.note-tools{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap;}
+.note-save{
+background:var(--brass);color:var(--ink);border:none;border-radius:20px;
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:11.5px;font-weight:600;
+padding:9px 16px;cursor:pointer;min-height:36px;
+}
+.note-cancel{
+background:none;border:1px solid var(--line);color:var(--muted);border-radius:20px;
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:11.5px;
+padding:9px 14px;cursor:pointer;min-height:36px;
+}
+.note-cancel:hover{border-color:var(--brass);color:var(--brass);}
+.note-count{font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:10.5px;color:var(--muted);margin-left:auto;}
+.note-hint{font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:10px;color:var(--muted);opacity:.85;margin:6px 0 0;}
+.note-saved{
+margin-top:8px;padding:10px 12px;border-radius:9px;
+background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--brass);
+font-size:13px;line-height:1.5;color:var(--paper);
+}
+.note-pen{color:var(--brass);margin-right:5px;}
+.note-meta{display:flex;gap:12px;margin-top:7px;}
+.note-meta button{
+background:none;border:none;padding:2px 0;cursor:pointer;
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:10.5px;color:var(--muted);text-decoration:underline;
+}
+.note-meta button:hover{color:var(--brass);}
+.empty{
+text-align:center;color:var(--muted);padding:40px 20px;font-size:13.5px;
+}
+/* ---- Campus grouping ---- */
+.zone-group{margin-bottom:26px;}
+.zone-head{
+display:flex;align-items:baseline;gap:6px 10px;flex-wrap:wrap;
+margin:0 0 10px;padding-bottom:8px;
+border-bottom:1px solid var(--line);
+}
+.zone-head h2{
+font-family:'Bebas Neue',sans-serif;font-weight:400;
+font-size:22px;letter-spacing:.03em;margin:0;color:var(--paper);
+}
+.zone-head .zone-meta{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:11px;color:var(--muted);
+margin-left:auto;white-space:nowrap;
+}
+.zone-head .zone-sub{font-size:11.5px;color:var(--muted);}
+.zone-list{display:flex;flex-direction:column;gap:10px;}
+.card.picked{
+border-color:var(--brass);
+box-shadow:0 0 0 2px var(--brass) inset;
+}
+.pick-scope{
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;font-size:11px;
+color:var(--muted);letter-spacing:.04em;text-align:center;
+margin:-8px 0 16px;
+}
+.pick-scope strong{color:var(--brass);font-weight:500;}
+.featured .card-name,.featured .tag{overflow-wrap:anywhere;}
+.featured .tag{white-space:normal;}
+@media (max-width:480px){
+.featured{padding-inline:12px;}
+.featured .card{padding-inline:10px;}
+.featured .card-top{gap:8px;}
+.featured .thumb{width:36px;height:36px;}
+}
+@media (min-width:700px){
+.zone-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;}
+}
+footer{
+margin-top:30px;text-align:center;
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;
+font-size:10.5px;color:var(--muted);
+}
+@media (max-width:480px){
+h1{font-size:36px;}
+.stop-name{font-size:11.5px;}
+.stop-sub{display:none;}
+}
+@media (min-width:700px){
+#app{max-width:960px;}
+}
+@media (prefers-reduced-motion: reduce){
+*{animation:none !important;transition:none !important;}
+}
+
+/* ---- Light mode ---- */
+html[data-theme="light"]{
+--ink:#F7F4EC;
+--surface:#FFFFFF;
+--surface-2:#F1ECE1;
+--line:#DFD8C8;
+--brass:#9A6B12;
+--good:#1E8A50;
+--paper:#1E2320;
+--muted:#6B7269;
+}
+html[data-theme="light"] a:hover{color:#C08A18;}
+html[data-theme="light"] .pick-action{background:#F2C230;color:#2A2213;}
+html[data-theme="light"] .pick-action:enabled:hover{background:#FFD44F;}
+html[data-theme="light"] .stop-dot{background:#FFFFFF;}
+html[data-theme="light"] .stop[aria-pressed="true"] .stop-dot{background:var(--brass);}
+html[data-theme="light"] .tag.status{color:#A8541A;border-color:#E7C7A6;background:#FDF2E6;}
+html[data-theme="light"] .sheet-backdrop{background:rgba(30,35,32,.35);}
+html[data-theme="light"] .featured{box-shadow:0 18px 50px rgba(30,35,32,.22);}
+html[data-theme="light"] .card{box-shadow:0 1px 2px rgba(30,35,32,.05);}
+html[data-theme="light"] .been-btn.on{color:#FFFFFF;}
+html[data-theme="light"] .dir-link.order{color:#1E8A50;border-color:#BEE2CC;}
+html[data-theme="light"] .star{color:#DCD5C5;}
+html[data-theme="light"] .star.lit{color:#E0A800;}
+html[data-theme="light"] .star{color:#CFC7B4;}
+html[data-theme="light"] .rate-row{background:#FAF7F0;border-color:#E4DCCA;}
+html[data-theme="light"] .been-btn{background:#FFFFFF;border-color:#C6BFAD;color:#A39B8B;}
+html[data-theme="light"] .been-cap{color:#8C8578;}
+html[data-theme="light"] .note-edit textarea{background:#FFFFFF;}
+html[data-theme="light"] .note-saved{background:#FAF7F0;}
+html[data-theme="light"] .note-save{color:#2A2213;}
+/* ---- Toolbar (language + theme) ---- */
+.toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.tbtn{
+background:var(--surface);
+border:1px solid var(--line);
+color:var(--paper);
+font-family:'Lucida Sans Unicode','Lucida Grande','DejaVu Sans',monospace;
+font-size:11.5px;letter-spacing:.03em;
+padding:9px 14px;border-radius:22px;cursor:pointer;
+min-height:38px;display:inline-flex;align-items:center;gap:6px;
+transition:border-color .15s ease,color .15s ease;
+}
+.tbtn:hover{border-color:var(--brass);color:var(--brass);}
+.saved-link{margin-inline-end:auto;border-color:var(--brass);min-height:44px;text-decoration:none;}
+.saved-link[hidden]{display:none;}
+.tbtn-text .aa{font-size:15px;font-weight:600;line-height:1;}
+.tbtn-text{letter-spacing:.02em;}
+/* ---- Saved notes ---- */
+.saved-back{display:inline-flex;align-items:center;min-height:44px;margin-bottom:10px;font-size:14px;}
+.saved-list{display:grid;gap:10px;list-style:none;margin:18px 0 0;padding:0;}
+.saved-list:empty{display:none;}
+.saved-note{
+min-width:0;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);
+background:var(--surface);overflow-wrap:anywhere;
+}
+.saved-note h2{font-size:16px;line-height:1.4;margin:0;}
+.saved-note-meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted);font-size:12px;margin:4px 0 0;}
+.saved-note-text{white-space:pre-wrap;font-size:14px;line-height:1.55;margin:9px 0 0;}
+/* ---- Traditional Chinese typography ---- */
+html[lang="zh-Hant"] body{font-family:'Noto Sans TC','Inter',system-ui,sans-serif;}
+html[lang="zh-Hant"] h1{font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:36px;letter-spacing:0;}
+html[lang="zh-Hant"] .zone-head h2{font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:19px;}
+html[lang="zh-Hant"] .surprise-btn{font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:18px;}
+@media (max-width:480px){html[lang="zh-Hant"] h1{font-size:30px;}}
+
+/* ---- Locations use Verdana (declared last so it wins) ---- */
+.sig, .bldg, .pp-chip span{
+font-family:'Verdana','DejaVu Sans',Geneva,sans-serif;
+}
+.sig{font-size:12.5px;}
+.bldg{font-size:10.5px;}
+/* ---- Food passport ---- */
+.passport{
+margin:26px 0 10px;padding:16px 15px 14px;
+border:1px solid var(--line);border-radius:14px;
+background:linear-gradient(180deg, var(--surface), var(--surface-2));
+position:relative;overflow:hidden;
+}
+.passport::before{
+content:'';position:absolute;top:0;left:0;right:0;height:3px;
+background:linear-gradient(90deg,#E4572E,#F2C230,#3DDC84,#3FA7D6);
+}
+.pp-eyebrow{
+font-family:'Lucida Sans Unicode','Lucida Grande',monospace;
+font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+color:var(--muted);margin:0 0 7px;
+}
+.pp-rank{
+font-family:'Bebas Neue',sans-serif;font-size:31px;line-height:1;
+color:var(--paper);margin:0 0 2px;letter-spacing:.01em;
+}
+html[lang="zh-Hant"] .pp-rank{font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:25px;}
+.pp-score{font-size:13px;color:var(--muted);margin:0;}
+.pp-score b{color:var(--brass);font-size:17px;}
+.pp-bar{
+height:9px;border-radius:6px;background:var(--line);
+overflow:hidden;margin:11px 0 8px;
+}
+.pp-bar span{
+display:block;height:100%;border-radius:6px;
+background:linear-gradient(90deg,#F2C230,#3DDC84);
+transition:width .5s cubic-bezier(.2,.8,.2,1);
+}
+.pp-nudge{margin:0;font-size:12.5px;color:var(--brass);line-height:1.45;}
+.pp-campus{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.pp-chip{
+flex:1 1 90px;border:1px solid var(--line);border-radius:9px;
+padding:7px 9px;background:var(--surface);
+}
+.pp-chip b{
+display:block;font-family:'Lucida Sans Unicode','Lucida Grande',monospace;
+font-size:13px;color:var(--paper);margin-bottom:1px;
+}
+.pp-chip span{font-size:10px;color:var(--muted);display:block;line-height:1.3;}
+.pp-stats{
+display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 0;
+font-family:'Lucida Sans Unicode','Lucida Grande',monospace;
+font-size:10.5px;color:var(--muted);
+}
+.pp-stats em{font-style:normal;color:var(--paper);}
+.pp-device{
+margin:9px 0 0;font-size:10px;color:var(--muted);opacity:.8;line-height:1.4;
+}
+html[data-theme="light"] .passport{background:linear-gradient(180deg,#FFFFFF,#F7F3E9);}
+html[data-theme="light"] .pp-chip{background:#FFFFFF;}
+
+/* ---- Monogram tile (replaces the remote cover photo) ---- */
+.thumb{
+border-color:color-mix(in srgb, var(--accent, var(--brass)) 38%, var(--line));
+background:color-mix(in srgb, var(--accent, var(--brass)) 12%, transparent);
+}
+.thumb::after{
+content:attr(data-init);
+font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.05em;
+color:var(--accent, var(--brass));
+}
+.card-name a .ext{
+font-size:.72em;margin-left:4px;opacity:.5;vertical-align:super;
+}
+.card-name a:hover .ext{opacity:1;}
+/* ---- Tried / not tried: readable at a glance, especially in light mode ---- */
+.been-cap{
+padding:2px 7px;border-radius:20px;border:1px solid transparent;white-space:nowrap;
+}
+.been-cap.on{
+background:color-mix(in srgb, var(--good) 16%, transparent);
+border-color:color-mix(in srgb, var(--good) 45%, transparent);font-weight:700;
+}
+html[data-theme="light"] .been-btn{
+background:#FFFFFF;border:2px dashed #9AA095;color:#6B7269;
+}
+html[data-theme="light"] .been-btn::before{opacity:.75;}
+html[data-theme="light"] .been-btn.on{
+background:#1E8A50;border:2px solid #1E8A50;color:#FFFFFF;
+box-shadow:0 0 0 4px rgba(30,138,80,.18);
+}
+html[data-theme="light"] .been-cap{color:#4F584E;font-weight:600;}
+html[data-theme="light"] .been-cap.on{
+color:#136B3C;background:#E3F3EA;border-color:#1E8A50;
+}
+/* ---- Version / credit line ---- */
+.ver{display:inline-block;margin-top:5px;opacity:.85;line-height:1.5;}
+
+.ver a{color:inherit;text-decoration:underline;text-underline-offset:2px;}
+.ver a:hover{color:var(--brass);}
+
+/* ---- Share button ---- */
+.share-btn{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));right:16px;z-index:10;background:var(--surface-2);border:1px solid var(--line);border-radius:50px;padding:9px 15px 9px 12px;display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--paper);cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.35);transition:border-color .15s ease,color .15s ease;}
+.share-btn:hover{border-color:var(--brass);color:var(--brass);}
+.share-btn svg{flex-shrink:0;opacity:.75;}
+.share-toast{position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));right:16px;z-index:11;background:var(--surface);border:1px solid var(--good);border-radius:8px;padding:7px 13px;font-size:12px;color:var(--good);pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .2s ease,transform .2s ease;}
+.share-toast.show{opacity:1;transform:translateY(0);}
+html[data-theme="light"] .share-btn{box-shadow:0 3px 12px rgba(30,35,32,.18);}
+
+</style>
+
+</head>
+<body>
+<div id="app">
+<div class="toolbar">
+<a class="tbtn saved-link" id="savedLink" href="#saved">My Notes</a>
+<button class="tbtn tbtn-text" id="textBtn" type="button" aria-label="Adjust text size"><span class="aa">A</span> 100%</button>
+<button class="tbtn" id="langBtn" type="button">繁體中文</button>
+<button class="tbtn" id="themeBtn" type="button">☀︎ Light</button>
+</div>
+<main>
+<section id="browse" aria-labelledby="pageTitle">
+<p class="eyebrow" id="eyebrow">HKU Version</p>
+<h1 id="pageTitle">What to eat today?</h1>
+<div class="intro-name">
+<p class="subtitle" id="subtitle">Find a place to eat on any HKU campus.</p>
+<button class="name-link" id="editNameBtn" type="button">Add your name</button>
+</div>
+<details class="usage-guide">
+<summary id="guideTitle">How to use this guide</summary>
+<ol id="guideSteps" class="guide-steps"></ol>
+</details>
+
+<div class="route-wrap">
+<div class="route-track" id="routeTrack" role="group" aria-labelledby="campusHint"></div>
+<div class="route-all"><span class="route-hint" id="campusHint">Select one or more campuses</span><button id="allZonesBtn" type="button">Show all campuses</button></div>
+</div>
+
+<div class="filters">
+<select id="cuisineSelect"></select>
+<select id="statusSelect"></select>
+</div>
+
+<button class="surprise-btn pick-action" id="surpriseBtn">🎲 Surprise me</button>
+<p class="pick-scope" id="pickScope"></p>
+<div id="featuredSlot"></div>
+
+<div class="count-bar">
+<span class="n" id="countText"></span>
+<div class="record-tools">
+<button class="reset-link" id="resetBtn">reset explored list</button>
+<button class="reset-link" id="exportBtn" type="button">Export my data</button>
+</div>
+</div>
+
+<div class="list" id="list"></div>
+
+<div id="passportSlot"></div>
+</section>
+<section id="saved" aria-labelledby="savedTitle" hidden>
+<a class="saved-back" id="savedBack" href="#browse">← Back to eateries</a>
+<h1 id="savedTitle" tabindex="-1">My Notes</h1>
+<p class="empty" id="savedEmpty" hidden></p>
+<ul class="saved-list" id="savedNotes"></ul>
+</section>
+</main>
+<dialog class="name-dialog" id="nameDialog" aria-labelledby="nameDialogTitle">
+<form id="nameForm">
+<div class="name-dialog-header">
+<h2 id="nameDialogTitle">What should we call you?</h2>
+<button class="name-link" id="nameLangBtn" type="button" lang="zh-Hant">繁體中文</button>
+</div>
+<label id="displayNameLabel" for="displayName">Preferred name</label>
+<input id="displayName" type="text" autocomplete="nickname" maxlength="40" placeholder="e.g. Cindy" required autofocus>
+<div class="name-actions">
+<button class="btn-secondary pick-action" id="saveNameBtn" type="submit">Save</button>
+<button class="btn-secondary" id="skipNameBtn" type="button">Skip for now</button>
+</div>
+</form>
+</dialog>
+<dialog class="name-dialog photo-preview" id="photoPreview" aria-label="Photo">
+<img id="previewImage" alt="">
+<form method="dialog"><button class="btn-secondary" id="closePhotoPreview" type="submit">Close</button></form>
+</dialog>
+
+<button class="share-btn" id="shareBtn" type="button" aria-label="Share"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span id="shareBtnLabel"></span></button><div class="share-toast" id="shareToast"></div>
+<footer id="footer">HKU campus eateries · Main, Centennial &amp; Sassoon Road campuses · maps pinned to HKU buildings · source: catering.hku.hk · ratings &amp; explored list stored in this browser</footer>
+</div>
+
+<script>
+const CUISINES = {
+local:'Local HK Flavors', asian:'Asian Delights', western:'Western Delicacies', cnwestern:'Chinese & Western',
+coffee:'Coffee Shop', halal:'Halal Food', veg:'Vegetarian', kiosk:'Kiosk & Vending'
+};
+const ZONES = {
+main:{label:'Main Campus', sub:'The classics', regions:['main']},
+cc:{label:'Centennial Campus', sub:'West side', regions:['cc']},
+sr:{label:'Sassoon Road', sub:'Medic campus', regions:['sr']}
+};
+const CUISINE_COLORS = {
+local:'#F4433C', asian:'#FF8A3D', western:'#5FE06B',
+coffee:'#C9B27C', halal:'#8C6BFF', veg:'#3DDC84', kiosk:'#9FA79C', cnwestern:'#E8956D'
+};
+// Every outlet is pinned to the HKU building it sits in, not to its own
+// trading name. Searching Google for a name like "27 Kebab House" used to
+// land on an unrelated shop off campus. Coordinates below are the building
+// footprints from OpenStreetMap; buildings without a verified coordinate fall
+// back to an HKU-scoped building query.
+const BUILDINGS = {
+'cym':{label:'Chong Yuet Ming Amenities / Cultural Centre', campus:'main', ll:[22.282709,114.139135]},
+'rrs-building':{label:'Run Run Shaw Building (Podium)', campus:'main', ll:[22.282421,114.138058]},
+'fscac':{label:'Fong Shu Chuen Amenities Centre', campus:'main', q:'HKU Fong Shu Chuen Amenities Centre, The University of Hong Kong, Pokfulam'},
+'haking-wong':{label:'Haking Wong Building', campus:'main', ll:[22.282960,114.136491]},
+'composite':{label:'Composite Building', campus:'main', q:'HKU Composite Building, The University of Hong Kong, Pokfulam Road'},
+'kk-leung':{label:'K.K. Leung Building', campus:'main', ll:[22.283280,114.139040]},
+'main-library':{label:'Main Library (Old Wing)', campus:'main', ll:[22.283330,114.137800]},
+'rrs-tower':{label:'Run Run Shaw Tower, Centennial Campus', campus:'cc', ll:[22.283720,114.134430]},
+'jc-tower':{label:'The Jockey Club Tower, Centennial Campus', campus:'cc', ll:[22.283210,114.134660]},
+'cyt-tower':{label:'Cheng Yu Tung Tower, Centennial Campus', campus:'cc', q:'HKU Cheng Yu Tung Tower, Centennial Campus, The University of Hong Kong'},
+'sr-academic':{label:'Academic Building, 3 Sassoon Road', campus:'sr', q:'HKU Academic Building, 3 Sassoon Road, Pokfulam, Hong Kong'},
+'sr-6':{label:'6 Sassoon Road', campus:'sr', q:'6 Sassoon Road, Pokfulam, Hong Kong'},
+'sr-hkjc':{label:'HKJC Building for Interdisciplinary Research, 5 Sassoon Road', campus:'sr', q:'HKJC Building for Interdisciplinary Research, 5 Sassoon Road, Pokfulam, Hong Kong'},
+'sr-lab':{label:'Laboratory Block, 21 Sassoon Road', campus:'sr', q:'Laboratory Block, Li Ka Shing Faculty of Medicine, 21 Sassoon Road, Pokfulam, Hong Kong'},
+'sr-mong':{label:'William M.W. Mong Block, 21 Sassoon Road', campus:'sr', ll:[22.267401,114.128306]}
+};
+function bldgPoint(b){ return b.ll ? b.ll[0] + ',' + b.ll[1] : null; }
+function bldgQuery(b){ return b.ll ? bldgPoint(b) : b.q; }
+function dirUrl(b){
+return 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=' + encodeURIComponent(bldgQuery(b));
+}
+const RESTAURANTS = [
+{id:'cym-canteen',region:'main',name:'CYM Canteen',cuisine:'local',subtag:null,loc:'4/F, Chong Yuet Ming Cultural Centre',order:'https://now.order.place/#/store/102858/mode/prekiosk',status:null},
+{id:'hk-daily',region:'main',name:'Hong Kong Daily 香江冰室',cuisine:'local',subtag:'Cha Chaan Teng',loc:'4/F, Chong Yuet Ming Cultural Centre',order:'https://csd2.order.place/store/112841/mode/takeaway',status:null},
+{id:'subway-main',region:'main',name:'Subway',cuisine:'western',subtag:'Sandwiches',loc:'Run Run Shaw Podium',order:null,status:null,service:'counterTakeaway'},
+{id:'sandwich-club-kiosk-main',region:'main',name:'Kiosk by The Sandwich Club',cuisine:'western',subtag:'Sandwiches',loc:'Run Run Shaw Podium',orderViaHku:true,status:null,service:'counterTakeaway'},
+{id:'kebab-house',region:'main',name:'27 Kebab House',cuisine:'halal',subtag:'Kebab',loc:'1/F, Fong Shu Chuen Amenities Centre',order:null,status:null},
+{id:'union-restaurant',region:'main',name:'Union Restaurant',cuisine:'local',subtag:null,loc:'4/F Haking Wong Building (Podium)',order:'https://now.order.place/#/store/12827/mode/prekiosk',status:null},
+{id:'starbucks-main',region:'main',name:'Starbucks Coffee',cuisine:'coffee',subtag:null,loc:'Shop G.03, G/F, Composite Building',order:'https://www.starbucks.com.hk/en/new-app-launch',status:null},
+{id:'taitai',region:'main',name:'TAI TAI FOODTOPIA 台台果腹',cuisine:'asian',subtag:'Taiwanese',loc:'Shop G.02, G/F, Composite Building',order:'https://order.taitaiteaology.com/#/goodslist?query=eyJwYXJlbnQiOiI0Iiwic2hvcCI6IjEwMDEiLCJwYWdlIjoiIiwicGlja01lYWxUeXBlIjoiMiIsInRhYmxlTmFtZSI6IiJ9',status:null,onlineTakeaway:true,service:'takeaway'},
+{id:'oori-hansik',region:'main',name:'OORI HANSIK',cuisine:'asian',subtag:'Korean',loc:'Shop G.01, G/F, Composite Building',order:'https://order.oorihansik.com/#/autoroute?query=eyJwYXJlbnQiOiI0Iiwic2hvcCI6IjIwMDEiLCJwYWdlIjoiIiwicGlja01lYWxUeXBlIjoiMiIsInRhYmxlTmFtZSI6IiJ9',status:null,onlineTakeaway:true},
+{id:'vending-nook',region:'main',name:'Vending Nook',cuisine:'kiosk',subtag:null,loc:'Shop G05 & G06, G/F Composite Building',order:null,status:null},
+{id:'vending-hub',region:'main',name:'Vending Hub',cuisine:'kiosk',subtag:null,loc:'G/F Chong Yuet Ming Amenities Centre',order:null,status:null},
+{id:'scr',region:'main',name:'Senior Common Room',cuisine:'western',subtag:null,loc:'14/F & 15/F K.K. Leung Building',order:null,status:'Members only'},
+{id:'juyingtai',region:'main',name:'JuYing Tai 聚英臺',cuisine:'local',subtag:null,loc:'2/F, Fong Shu Chuen Amenities Centre, Swire Building',order:null,status:null},
+{id:'so330',region:'main',name:'so330',cuisine:'western',subtag:'Healthy',loc:'2/F, Chong Yuet Ming Amenities Centre',order:'https://app.eats365pos.com/hk/en/so330_hku',status:null},
+{id:'ucr',region:'main',name:'Urban Coffee Roaster',cuisine:'coffee',subtag:null,loc:'G/F, Library Building (Old Wing)',order:null,status:null},
+{id:'bijas',region:'cc',name:'BIJAS Vegetarian',cuisine:'veg',subtag:null,loc:'G/F Run Run Shaw Tower',order:null,status:null},
+{id:'good-bridge',region:'cc',name:'The Good Bridge',cuisine:'western',subtag:'Chinese Cuisine',loc:'4/F, Jockey Club Tower',order:null,status:'Staff only'},
+{id:'tamjai',region:'cc',name:'TamJai SamGor',cuisine:'local',subtag:'Mixian',loc:'G/F The Jockey Club Tower',order:'https://samgor.idimsum.com/byod/scan/store/102/S130/qr?orderType=TAKEAWAY',status:null},
+{id:'alfafa',region:'cc',name:'alfafa bistro',cuisine:'western',subtag:null,loc:'LG/F The Jockey Club Tower',order:'https://alfafabistro.self-order.app/alfafabistro/?c3RvcmVOdW1iZXI9MTA3JnRhYmxlTnVtYmVyPVRBS0VBV0FZ=',status:null,onlineTakeaway:true},
+{id:'gourmet-asia',region:'cc',name:'Asian Gourmet',cuisine:'asian',subtag:null,loc:'G/F, Run Run Shaw Tower, Centennial Campus',order:'https://scan.aigens.com/scan?code=c3RvcmU9MjEyODI4Jm1vZGU9dGFrZWF3YXkmcGFnZT1ieW9k',status:null},
+{id:'grove',region:'sr',name:'Grove',cuisine:'western',subtag:null,loc:'2/F Academic Building, 3 Sassoon Road',order:'https://order.grove.hk/#/goodslist?query=eyJwYXJlbnQiOiI0Iiwic2hvcCI6IjIxMCIsInBhZ2UiOiIiLCJwaWNrTWVhbFR5cGUiOiIyIiwidGFibGVOYW1lIjoiIn0=',status:null},
+{id:'sandwich-club-sr',region:'sr',name:'Sandwich Club Kiosk',cuisine:'western',subtag:'Sandwiches',loc:'G/F, 6 Sassoon Road (near Lee Hysan Hall)',order:null,status:null,service:'counterTakeaway',assemblyHallSeats:true},
+{id:'ebeneezers-sr',region:'sr',name:"Ebeneezer's Kebebs & Pizzeria Express",cuisine:'halal',subtag:['Kebab','Pizza'],loc:'G/F, HKJC Building for Interdisciplinary Research, 5 Sassoon Road',order:null,status:null,service:'counterTakeaway'},
+{id:'subway-sr',region:'sr',name:'Subway',cuisine:'western',subtag:'Sandwiches',loc:'Fan Pui Garden, LG/F, Laboratory Block, 21 Sassoon Road',order:null,status:null,service:'counterTakeaway'},
+{id:'starbucks-sr',region:'sr',name:'Coffee Kiosk by Starbucks Coffee',cuisine:'coffee',subtag:null,loc:'G/F Lobby, William M.W. Mong Block, Faculty of Medicine Building, 21 Sassoon Road',order:'https://www.starbucks.com.hk/en/new-app-launch',status:null,service:'counterTakeaway'},
+{id:'wholesome-hub',region:'sr',name:'Wholesome Hub',cuisine:'western',subtag:['Healthy','This that rice'],loc:'G/F Lift Lobby, Laboratory Block, 21 Sassoon Road',orderViaHku:true,status:null},
+{id:'restaurant-1887',region:'sr',name:'Restaurant 1887',cuisine:'cnwestern',subtag:'Sea View',loc:'7/F, William M.W. Mong Block',order:null,status:null}
+];
+const BLDG_OF = {
+'cym-canteen':'cym','hk-daily':'cym','vending-hub':'cym','so330':'cym',
+'subway-main':'rrs-building','sandwich-club-kiosk-main':'rrs-building',
+'kebab-house':'fscac','juyingtai':'fscac',
+'union-restaurant':'haking-wong',
+'starbucks-main':'composite','taitai':'composite','oori-hansik':'composite','vending-nook':'composite',
+'scr':'kk-leung',
+'ucr':'main-library',
+'bijas':'rrs-tower','gourmet-asia':'rrs-tower',
+'good-bridge':'jc-tower','tamjai':'jc-tower','alfafa':'jc-tower',
+'grove':'sr-academic','sandwich-club-sr':'sr-6','ebeneezers-sr':'sr-hkjc',
+'subway-sr':'sr-lab','wholesome-hub':'sr-lab','starbucks-sr':'sr-mong','restaurant-1887':'sr-mong'
+};
+RESTAURANTS.forEach(r=>{
+const b = BUILDINGS[BLDG_OF[r.id]];
+r.bldg = b;
+r.bldgKey = BLDG_OF[r.id];
+r.region = b.campus; // campus always follows the building, so nothing sits off-campus
+r.dirUrl = dirUrl(b);
+});
+
+/* ================= Language + theme ================= */
+const PAGES = {
+'cym-canteen':'cymr',
+'hk-daily':'hkdaily',
+'union-restaurant':'UR',
+'grove':'3SRC',
+'subway-main':'COII',
+'sandwich-club-kiosk-main':'COIII',
+'kebab-house':'halalcorner',
+'starbucks-main':'COBG03',
+'taitai':'COBG02',
+'oori-hansik':'COBG01',
+'vending-nook':'COBG05',
+'bijas':'CCOutletD',
+'juyingtai':'FSCACR',
+'so330':'cymc',
+'ucr':'mlc',
+'alfafa':'CCOutletA',
+'tamjai':'CCOutletB',
+'gourmet-asia':'CCOutletC',
+'good-bridge':'bridge',
+'sandwich-club-sr':'6SRKiosk',
+'ebeneezers-sr':'5SRKiosk',
+'subway-sr':'FanPuiOutpost',
+'starbucks-sr':'FOMBCK',
+'wholesome-hub':'LabBlockGF',
+'restaurant-1887':'1887',
+'vending-hub':'CYMGF',
+'scr':'SCR'
+};
+const SITE = 'https://catering.hku.hk/en/eateries/';
+let lang = 'zh';
+let theme = 'dark';
+// Text size steps for anyone who finds the default small. The whole page
+// scales together, so tap targets grow with the text and nothing overlaps.
+const TEXT_STEPS = [1, 1.15, 1.3, 1.5];
+let textStep = 0;
+const T = {
+en:{
+docTitle:'What to Eat Today — HKU Version',
+eyebrow:'HKU Version',
+title:'What to eat today?',
+subtitle:'Find a place to eat on any HKU campus.',
+greeting:'Hey {name}, what’s your plan for lunch or dinner today?',
+namePrompt:'What should we call you?',
+nameLabel:'Preferred name',
+nameExample:'e.g. Cindy',
+nameRequired:'Enter a name.',
+nameSave:'Save',
+nameSkip:'Skip for now',
+nameCancel:'Cancel',
+nameAdd:'Add your name',
+nameEdit:'Change name',
+guideTitle:'How to use this guide',
+guideSteps:[
+'Choose one or more <strong>campuses</strong>, then filter by <strong>cuisine</strong> if you like.',
+'Tap <strong>Surprise me</strong> for a pick from those filters. Use <strong>Directions</strong> on the card to get there.',
+'After eating, tap the tick to mark it as <strong>tried</strong>. Open <strong>My notes &amp; rating</strong> to rate it or jot something down. Your records stay in this browser.'
+],
+recordsLabel:'My notes & rating',
+savedTitle:'My Notes',
+savedBack:'← Back to eateries',
+savedEmpty:'Your notes will appear here. To add one, open My notes & rating on an eatery card.',
+savedFormer:'Former eatery',
+addPhoto:'Add photo',
+viewPhoto:'View photo',
+delPhoto:'Delete photo',
+exportBtn:'Export my data',
+exportTitle:'My HKU Eats',
+exportedOn:'Exported on',
+exportTried:'Tried',
+exportEmpty:'No ratings, notes or photos yet.',
+campusHint:'Select one or more campuses',
+allCampuses:'Show all campuses',
+allCuisines:'All cuisines',
+openNow:'Hide upcoming eateries',
+includeSoon:'Include coming soon',
+surprise:'🎲 Surprise me',
+scopeAll:'picking from <strong>all campuses</strong> · {n} eateries in play',
+scopeZone:'picking within <strong>{z}</strong> · {n} eateries in play',
+count:'<strong>{d}</strong> of {t} explored · <strong>{r}</strong> rated',
+reset:'reset explored list',
+resetConfirm:'Clear your explored list? This cannot be undone.',
+explored:'explored',
+directions:'↗ Directions',
+order:'🛵 Order Now',
+orderTakeaway:'🛵 Order takeaway online',
+orderViaHku:'🛵 Order via HKU',
+takeaway:'Takeaway',
+counterTakeaway:'Counter takeaway',
+assemblyHallSeats:'Limited seats in Assembly Hall, 11:00–15:00.',
+pinned:'📍 pinned to ',
+todaysPick:'Today’s pick · ',
+shareBtn:'Share',
+shareToast:'Link copied!',
+tryAnother:'🎲 Try another',
+close:'Close',
+noRatings:'You haven’t rated this yet',
+rating:'rating', ratings:'ratings',
+empty:'Nothing matches those filters. Try widening the search.',
+footer:'HKU campus eateries · Main, Centennial &amp; Sassoon Road campuses · maps pinned to HKU buildings · source: catering.hku.hk · ratings &amp; explored list stored in this browser',
+langBtn:'繁體中文',
+themeToLight:'☀︎ Light',
+themeToDark:'☾ Dark',
+beenTitle:'Mark as been there',
+rateAria:'Rate {i} star(s)',
+textAria:'Adjust text size',
+ppEyebrow:'your HKU food passport',
+ppScore:'{n} of {t} eateries stamped',
+ppStart:'Tap the \u2713 on any card to stamp your first one.',
+ppNudge:'{k} more and you make {rank}.',
+ppDone:'Every eatery on all three campuses, cleared. Someone get this person a plaque.',
+ppRated:'{n} rated',
+ppNoted:'{n} comments',
+ppDevice:'Stamps, stars and comments are kept on this device only \u2014 no sign-in, nothing sent anywhere. They survive reloads and app updates.',
+ppRanks:['Fresh Arrival','Tray Tourist','Lunch Regular','Campus Grazer','Podium Veteran','Canteen Connoisseur','Three-Campus Legend','Full Menu Cleared'],
+rateLabel:'Your rating',
+clearRate:'\u2715 clear',
+rateTip:'tap the same star again to undo',
+verLine:'v13 \u00b7 updated 24 Nov 2026 \u00b7 made by Cindy Liang \u00b7 a personal side project shared with the HKU community, not an official HKU service. Hours and outlets change \u2014 <a href="https://catering.hku.hk/" target="_blank" rel="noopener">catering.hku.hk</a> is the last word.',
+siteAria:'Open this eatery on catering.hku.hk (menu, photos, opening hours)',
+beenCap:'not tried',
+beenCapOn:'\u2713 tried',
+addNote:'\u270e Add a comment',
+notePh:'Queue, price, best dish, opening hours\u2026',
+noteSave:'Save',
+noteCancel:'Cancel',
+noteHint:'saved on this device only',
+editNote:'edit',
+delNote:'delete'
+},
+zh:{
+docTitle:'今日食乜好？— 港大版',
+eyebrow:'港大版',
+title:'今日食乜好？',
+subtitle:'搵間港大校園食肆，睇吓今日食乜。',
+greeting:'Hello {name}，今日想食乜呀？',
+namePrompt:'點稱呼你好？',
+nameLabel:'你想用嘅稱呼',
+nameExample:'例如 Cindy',
+nameRequired:'請輸入稱呼。',
+nameSave:'儲存',
+nameSkip:'暫時略過',
+nameCancel:'取消',
+nameAdd:'加個稱呼',
+nameEdit:'更改稱呼',
+guideTitle:'使用指南',
+guideSteps:[
+'先揀一個或多個<strong>校園</strong>，再按喜好篩選<strong>菜式</strong>。',
+'未諗到食乜？按<strong>隨機推介</strong>，就會從符合條件的食肆抽一間。想出發就按卡片上的<strong>路線指引</strong>。',
+'食完可按剔號標記<strong>已試</strong>，或打開<strong>我的紀錄</strong>評分、寫低感想。紀錄只儲存在這個瀏覽器。'
+],
+recordsLabel:'我的紀錄',
+savedTitle:'我的點評',
+savedBack:'← 返回食肆指南',
+savedEmpty:'暫時未有點評。打開食肆卡片上的「我的紀錄」，就可以寫低感想。',
+savedFormer:'舊食肆',
+addPhoto:'加相片',
+viewPhoto:'查看相片',
+delPhoto:'刪除相片',
+exportBtn:'匯出我的紀錄',
+exportTitle:'我的港大美食紀錄',
+exportedOn:'匯出日期',
+exportTried:'已試',
+exportEmpty:'暫時未有評分、筆記或相片。',
+campusHint:'可多選校園',
+allCampuses:'顯示所有校園',
+allCuisines:'所有菜式',
+openNow:'隱藏即將開業',
+includeSoon:'包括即將開幕',
+surprise:'🎲 隨機推介',
+scopeAll:'從 <strong>所有校園</strong> 抽選 · 現有 {n} 間可選擇',
+scopeZone:'於 <strong>{z}</strong> 內選擇 · 現有 {n} 間可選擇',
+count:'已試 <strong>{d}</strong>/{t} · 已評分 <strong>{r}</strong>',
+reset:'重設已試清單',
+resetConfirm:'確定清除已試清單？此動作無法復原。',
+explored:'已試',
+directions:'↗ 路線指引',
+order:'🛵 開始落單',
+orderTakeaway:'🛵 網上訂外賣',
+orderViaHku:'🛵 經港大網站落單',
+takeaway:'外賣',
+counterTakeaway:'櫃檯外賣',
+assemblyHallSeats:'禮堂於 11:00–15:00 提供少量座位。',
+pinned:'📍 定位：',
+todaysPick:'今日推介 · ',
+shareBtn:'分享',
+shareToast:'連結已複製！',
+tryAnother:'🎲 再抽一次',
+close:'關閉',
+noRatings:'你尚未評分',
+rating:'個評分', ratings:'個評分',
+empty:'沒有符合條件的食肆，試試放寬篩選。',
+footer:'港大校園食肆 · 主校園、百周年校園及沙宣道校園 · 地圖以港大建築物定位 · 資料來源：catering.hku.hk · 評分及已試清單儲存於此瀏覽器',
+langBtn:'English',
+themeToLight:'☀︎ 淺色',
+themeToDark:'☾ 深色',
+beenTitle:'標記為已試過',
+rateAria:'評 {i} 星',
+textAria:'調整字體大小',
+ppEyebrow:'你的港大美食護照',
+ppScore:'已試 {n} 間，共 {t} 間',
+ppStart:'在任何一張卡片按 \u2713，蓋下第一個印。',
+ppNudge:'再試 {k} 間，就升做「{rank}」。',
+ppDone:'三個校園全部食肆都打卡完成，堪稱港大食神。',
+ppRated:'已評 {n} 間',
+ppNoted:'感想 {n} 則',
+ppDevice:'打卡、評分及感想只儲存於這部裝置，毋須登入，也不會上傳；重新載入或換新版本都不會消失。',
+ppRanks:['初來報到','試味新丁','午餐常客','校園覓食者','平台老手','食堂達人','三校園食神','全院通吃'],
+rateLabel:'你的評分',
+clearRate:'\u2715 取消',
+rateTip:'再按同一顆星可取消評分',
+verLine:'v13 \u00b7 updated 24 Nov 2026 \u00b7 由 Cindy Liang 製作 \u00b7 個人業餘作品，歡迎港大人使用，並非港大官方服務。營業時間及店舖資料以 <a href="https://catering.hku.hk/" target="_blank" rel="noopener">catering.hku.hk</a> 為準。',
+siteAria:'在 catering.hku.hk 查看餐單、相片及營業時間',
+beenCap:'未試',
+beenCapOn:'\u2713 已試',
+addNote:'\u270e 寫下感想',
+notePh:'排隊、價錢、必食、營業時間…',
+noteSave:'儲存',
+noteCancel:'取消',
+noteHint:'僅儲存於此裝置',
+editNote:'修改',
+delNote:'刪除'
+}
+};
+function t(k){ return (T[lang] && T[lang][k]) !== undefined ? T[lang][k] : T.en[k]; }
+
+/* Traditional Chinese labels. Outlet names keep the English name in
+   brackets, so campus signage is still recognisable. */
+const ZH_ZONE = {main:'主校園', cc:'百周年校園', sr:'沙宣道校園'};
+const ZH_ZONE_SUB = {main:'經典之選', cc:'校園西側', sr:'醫學院校園'};
+const ZH_CUISINE = {
+local:'本地風味', asian:'亞洲風味', western:'西式美食', cnwestern:'中式、西式美食',
+coffee:'咖啡店', halal:'清真食品', veg:'素食', kiosk:'小食亭及自動售賣機'
+};
+const ZH_SUBTAG = {
+'Cha Chaan Teng':'茶餐廳','Sandwiches':'三文治','Kebab':'中東烤肉','This that rice':'兩饋飯','Sea View':'海景餐廳','Chinese Cuisine':'中式美食',
+'Taiwanese':'台式','Korean':'韓式','Mixian':'米線','Pizza':'薄餅','Healthy':'健康輕食'
+};
+const ZH_STATUS = {
+'Coming soon':'即將開幕','Staff only':'只限教職員','Members only':'只限會員'
+};
+const ZH_BLDG = {
+'cym':'莊月明文娛中心',
+'rrs-building':'邵逸夫樓平台',
+'fscac':'方樹泉文娛中心',
+'haking-wong':'黃克競樓',
+'composite':'綜合大樓',
+'kk-leung':'梁鎶琚樓',
+'main-library':'大學圖書館（舊翼）',
+'rrs-tower':'逸夫教學樓（百周年校園）',
+'jc-tower':'賽馬會教學樓（百周年校園）',
+'cyt-tower':'鄭裕彤教學樓（百周年校園）',
+'sr-academic':'沙宣道 3 號學術樓',
+'sr-6':'沙宣道 6 號',
+'sr-hkjc':'沙宣道 5 號香港賽馬會跨學科研究大樓',
+'sr-lab':'沙宣道 21 號實驗大樓',
+'sr-mong':'沙宣道 21 號蒙民偉樓'
+};
+const ZH_NAME = {
+'cym-canteen':['莊月明食堂','CYM Canteen'],
+'hk-daily':['香江冰室','Hong Kong Daily'],
+'subway-main':[null,'Subway'],
+'sandwich-club-kiosk-main':[null,'Kiosk by The Sandwich Club'],
+'kebab-house':['27 中東烤肉','27 Kebab House'],
+'union-restaurant':['學生會餐廳','Union Restaurant'],
+'starbucks-main':['星巴克咖啡','Starbucks Coffee'],
+'taitai':['台台果腹','TAI TAI FOODTOPIA'],
+'oori-hansik':[null,'OORI HANSIK'],
+'vending-nook':['自動售賣角','Vending Nook'],
+'vending-hub':['自動售賣站','Vending Hub'],
+'scr':[null,'Senior Common Room'],
+'juyingtai':['聚英臺','JuYing Tai'],
+'so330':[null,'so330'],
+'ucr':[null,'Urban Coffee Roaster'],
+'bijas':['一念素食','BIJAS Vegetarian'],
+'good-bridge':[null,'The Good Bridge'],
+'tamjai':['譚仔三哥米線','TamJai SamGor'],
+'alfafa':[null,'alfafa bistro'],
+'gourmet-asia':['亞洲風味','Asian Gourmet'],
+'grove':[null,'Grove'],
+'sandwich-club-sr':['三文治小食亭','Sandwich Club Kiosk'],
+'subway-sr':[null,'Subway'],
+'starbucks-sr':['星巴克咖啡亭','Coffee Kiosk by Starbucks Coffee'],
+'wholesome-hub':['康心食坊','Wholesome Hub'],
+'restaurant-1887':['壹八捌七','Restaurant 1887']
+};
+const ZH_LOC = {
+'cym-canteen':'莊月明文娛中心 4 樓',
+'hk-daily':'莊月明文娛中心 4 樓',
+'subway-main':'邵逸夫樓平台',
+'sandwich-club-kiosk-main':'邵逸夫樓平台',
+'kebab-house':'方樹泉文娛中心 1 樓',
+'union-restaurant':'黃克競樓（平台）4 樓',
+'starbucks-main':'綜合大樓地下 G.03 號舖',
+'taitai':'綜合大樓地下 G.02 號舖',
+'oori-hansik':'綜合大樓地下 G.01 號舖',
+'vending-nook':'綜合大樓地下 G05 及 G06 號舖',
+'vending-hub':'莊月明文娛中心地下',
+'scr':'梁鎶琚樓 14 及 15 樓',
+'juyingtai':'方樹泉文娛中心 2 樓',
+'so330':'莊月明文娛中心 2 樓',
+'ucr':'大學圖書館（舊翼）地下',
+'bijas':'逸夫教學樓地下',
+'good-bridge':'賽馬會教學樓 4 樓',
+'tamjai':'賽馬會教學樓地下',
+'alfafa':'賽馬會教學樓低層地下',
+'gourmet-asia':'百周年校園逸夫教學樓地下',
+'grove':'沙宣道 3 號學術樓 2 樓',
+'sandwich-club-sr':'沙宣道 6 號地下（近利希慎堂）',
+'ebeneezers-sr':'沙宣道 5 號香港賽馬會跨學科研究大樓地下',
+'subway-sr':'沙宣道 21 號實驗大樓低層地下、芬沛花園',
+'starbucks-sr':'沙宣道 21 號蒙民偉樓地下大堂',
+'wholesome-hub':'沙宣道 21 號實驗大樓地下電梯大堂',
+'restaurant-1887':'蒙民偉樓 7 樓'
+};
+function nameOf(r){
+if(lang!=='zh') return r.name;
+const n = ZH_NAME[r.id];
+if(!n) return r.name;
+return n[0] ? n[0] + '（' + n[1] + '）' : n[1];
+}
+function locOf(r){ return lang==='zh' ? (ZH_LOC[r.id] || r.loc) : r.loc; }
+function cuisineOf(r){ return lang==='zh' ? ZH_CUISINE[r.cuisine] : CUISINES[r.cuisine]; }
+function subtagOf(r){
+if(!r.subtag) return null;
+const arr = Array.isArray(r.subtag) ? r.subtag : [r.subtag];
+return arr.map(t=> lang==='zh' ? (ZH_SUBTAG[t]||t) : t).join(' · ');
+}
+function statusOf(r){ if(!r.status) return null; return lang==='zh' ? (ZH_STATUS[r.status]||r.status) : r.status; }
+function bldgLabel(r){ return lang==='zh' ? (ZH_BLDG[r.bldgKey] || r.bldg.label) : r.bldg.label; }
+const CUISINE_COLORS_LIGHT = {
+local:'#C0332C', asian:'#B85C10', western:'#2E7D32',
+coffee:'#7A5C1E', halal:'#5B3BC4', veg:'#1E8A50', kiosk:'#5F6B60', cnwestern:'#B84A1A'
+};
+function accentOf(r){
+const m = theme==='light' ? CUISINE_COLORS_LIGHT : CUISINE_COLORS;
+return m[r.cuisine] || (theme==='light' ? '#9A6B12' : '#F2C230');
+}
+function applyChrome(){
+document.documentElement.setAttribute('lang', lang==='zh' ? 'zh-Hant' : 'en');
+document.documentElement.setAttribute('data-theme', theme);
+const scale = TEXT_STEPS[textStep];
+document.documentElement.style.zoom = scale;
+const tb = document.getElementById('textBtn');
+tb.innerHTML = '<span class="aa">' + (lang==='zh' ? '字' : 'A') + '</span> ' + Math.round(scale*100) + '%';
+tb.setAttribute('aria-label', t('textAria'));
+tb.setAttribute('title', t('textAria'));
+document.title = t('docTitle');
+document.getElementById('eyebrow').textContent = t('eyebrow');
+document.getElementById('pageTitle').textContent = t('title');
+renderNameCopy();
+document.getElementById('guideTitle').textContent = t('guideTitle');
+document.getElementById('guideSteps').innerHTML = t('guideSteps').map(step=>'<li>' + step + '</li>').join('');
+document.getElementById('savedLink').textContent = t('savedTitle');
+document.getElementById('savedTitle').textContent = t('savedTitle');
+document.getElementById('savedBack').textContent = t('savedBack');
+document.getElementById('savedEmpty').textContent = t('savedEmpty');
+document.getElementById('campusHint').textContent = t('campusHint');
+document.getElementById('allZonesBtn').textContent = t('allCampuses');
+document.getElementById('surpriseBtn').textContent = t('surprise');
+document.getElementById('resetBtn').textContent = t('reset');
+document.getElementById('exportBtn').textContent = t('exportBtn');
+document.getElementById('photoPreview').setAttribute('aria-label', t('viewPhoto'));
+document.getElementById('closePhotoPreview').textContent = t('close');
+document.getElementById('footer').innerHTML = t('footer') + '<br><span class="ver">' + t('verLine') + '</span>';
+document.getElementById('langBtn').textContent = t('langBtn');
+const _sl=document.getElementById('shareBtnLabel'); if(_sl) _sl.textContent=t('shareBtn');
+document.getElementById('themeBtn').textContent = theme==='dark' ? t('themeToLight') : t('themeToDark');
+}
+
+const state = { zones:new Set(), cuisine:'all', status:'open' };
+const ZONE_ORDER = Object.keys(ZONES);
+function zoneOf(r){ return ZONE_ORDER.find(k=>ZONES[k].regions.includes(r.region)); }
+function zoneName(k){ return lang==='zh' ? ZH_ZONE[k] : ZONES[k].label; }
+function zoneSub(k){ return lang==='zh' ? ZH_ZONE_SUB[k] : ZONES[k].sub; }
+function zoneLabel(r){ const k = zoneOf(r); return k ? zoneName(k) : ''; }
+let pickedId = null;
+let beenMap = {};
+let ratings = {}; // id -> {sum, count, mine}
+let notes = {}; // id -> {text, ts}
+let editingNote = null;
+function esc(x){
+return String(x).replace(/[&<>"]/g, function(c){
+return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+});
+}
+let featured = null;
+const photosCache = Object.create(null);
+const PHOTO_DB = 'hku-eats-photos';
+const PHOTO_STORE = 'photos';
+function openPhotoDb(){
+return new Promise((resolve,reject)=>{
+if(!window.indexedDB){ reject(new Error('no idb')); return; }
+const req = indexedDB.open(PHOTO_DB, 1);
+req.onupgradeneeded = ()=>{
+const db = req.result;
+if(!db.objectStoreNames.contains(PHOTO_STORE)) db.createObjectStore(PHOTO_STORE, {keyPath:'key'});
+};
+req.onsuccess = ()=>resolve(req.result);
+req.onerror = ()=>reject(req.error);
+});
+}
+function resizePhoto(dataUrl){
+return new Promise(resolve=>{
+const img = new Image();
+img.onload = ()=>{
+const maxDim = 1000;
+let w = img.width, h = img.height;
+if(w > maxDim || h > maxDim){
+if(w > h){ h = Math.round(h * maxDim / w); w = maxDim; } else { w = Math.round(w * maxDim / h); h = maxDim; }
+}
+const canvas = document.createElement('canvas');
+canvas.width = w; canvas.height = h;
+canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+resolve(canvas.toDataURL('image/jpeg', 0.72));
+};
+img.onerror = ()=>resolve(dataUrl);
+img.src = dataUrl;
+});
+}
+async function loadPhotosCache(){
+try{
+const db = await openPhotoDb();
+await new Promise((resolve,reject)=>{
+const tx = db.transaction(PHOTO_STORE, 'readonly');
+const store = tx.objectStore(PHOTO_STORE);
+const req = store.openCursor();
+req.onsuccess = e=>{
+const cur = e.target.result;
+if(cur){
+const v = cur.value;
+if(validPhoto(v.dataUrl)) (photosCache[v.id] = photosCache[v.id] || []).push(v);
+cur.continue();
+}else resolve();
+};
+req.onerror = ()=>reject(req.error);
+});
+Object.keys(photosCache).forEach(id=>photosCache[id].sort((a,b)=>a.ts-b.ts));
+}catch(e){}
+}
+async function addPhoto(id, file){
+try{
+const dataUrl = await new Promise((resolve,reject)=>{
+const reader = new FileReader();
+reader.onload = ()=>resolve(reader.result);
+reader.onerror = reject;
+reader.readAsDataURL(file);
+});
+const resized = await resizePhoto(dataUrl);
+if(!validPhoto(resized)) return;
+const key = id + '-' + Date.now() + '-' + Math.floor(Math.random()*1000);
+const rec = {key, id, dataUrl:resized, ts:Date.now()};
+const db = await openPhotoDb();
+await new Promise((resolve,reject)=>{
+const tx = db.transaction(PHOTO_STORE, 'readwrite');
+tx.objectStore(PHOTO_STORE).put(rec);
+tx.oncomplete = resolve;
+tx.onerror = ()=>reject(tx.error);
+});
+(photosCache[id] = photosCache[id] || []).push(rec);
+}catch(e){}
+}
+async function deletePhoto(id, key){
+try{
+const db = await openPhotoDb();
+await new Promise((resolve,reject)=>{
+const tx = db.transaction(PHOTO_STORE, 'readwrite');
+tx.objectStore(PHOTO_STORE).delete(key);
+tx.oncomplete = resolve;
+tx.onerror = ()=>reject(tx.error);
+});
+if(photosCache[id]) photosCache[id] = photosCache[id].filter(p=>p.key!==key);
+}catch(e){}
+}
+
+function validPhoto(value){
+return typeof value==='string' && /^data:image\/(jpeg|png|gif|webp|avif|bmp|heic|heif|x-icon|vnd\.microsoft\.icon|tiff);base64,[a-z0-9+/=]+$/i.test(value);
+}
+
+async function storageGet(key){
+try{
+if(window.storage && window.storage.get){
+const r = await window.storage.get(key, false);
+return r && r.value ? r.value : null;
+}
+}catch(e){}
+try{ return window.localStorage.getItem(key); }catch(e){ return null; }
+}
+async function storageSet(key, value){
+try{
+if(window.storage && window.storage.set){ await window.storage.set(key, value, false); return; }
+}catch(e){}
+try{ window.localStorage.setItem(key, value); }catch(e){}
+}
+
+// ---------------------------------------------------------------
+// Everything a visitor creates lives in ONE namespaced localStorage
+// record, rewritten on every change. A schema number plus a merge-based
+// migration means a future version can add fields without losing what is
+// already on the device, and an older build reading a newer record simply
+// ignores the keys it does not understand.
+// ---------------------------------------------------------------
+const STORE_KEY = 'hku-eats';
+const SCHEMA = 2;
+let store = null;
+let firstNamePrompt = false;
+const nameDialog = document.getElementById('nameDialog');
+const nameInput = document.getElementById('displayName');
+
+function renderNameCopy(){
+const name = store?.prefs.displayName;
+document.getElementById('subtitle').textContent = name
+? t('greeting').replace('{name}', ()=>name)
+: t('subtitle');
+document.getElementById('editNameBtn').textContent = t(name?'nameEdit':'nameAdd');
+document.getElementById('nameDialogTitle').textContent = t('namePrompt');
+document.getElementById('displayNameLabel').textContent = t('nameLabel');
+nameInput.placeholder = t('nameExample');
+document.getElementById('saveNameBtn').textContent = t('nameSave');
+document.getElementById('skipNameBtn').textContent = t(firstNamePrompt?'nameSkip':'nameCancel');
+const nameLang = document.getElementById('nameLangBtn');
+nameLang.textContent = t('langBtn');
+nameLang.lang = lang==='zh'?'en':'zh-Hant';
+}
+
+function openNameDialog(firstVisit = false){
+firstNamePrompt = firstVisit;
+nameInput.value = store?.prefs.displayName || '';
+nameInput.setCustomValidity('');
+renderNameCopy();
+nameDialog.showModal();
+}
+
+function blankStore(){
+return { app:'what-to-eat-hku', schema:SCHEMA, been:{}, ratings:{}, notes:{}, prefs:{}, updated:null };
+}
+function migrate(raw){
+const st = Object.assign(blankStore(), raw);
+st.been = Object.assign({}, raw.been);
+st.ratings = Object.assign({}, raw.ratings);
+st.notes = Object.assign({}, raw.notes);
+st.prefs = Object.assign({}, raw.prefs);
+st.schema = SCHEMA;
+return st;
+}
+async function loadState(){
+let raw = null;
+try{ raw = JSON.parse(await storageGet(STORE_KEY)); }catch(e){ raw = null; }
+const hadStoredState = !!raw && typeof raw==='object';
+if(hadStoredState){
+store = migrate(raw);
+}else{
+// Versions up to v10 used one key per feature; fold them in once so nobody
+// loses their stamps when upgrading.
+store = blankStore();
+try{ store.been = JSON.parse(await storageGet('hku-been-map')) || {}; }catch(e){}
+try{ store.ratings = JSON.parse(await storageGet('hku-ratings')) || {}; }catch(e){}
+try{ store.notes = JSON.parse(await storageGet('hku-notes')) || {}; }catch(e){}
+const oldLang = await storageGet('hku-lang');
+const oldTheme = await storageGet('hku-theme');
+const oldText = await storageGet('hku-text');
+if(oldLang) store.prefs.lang = oldLang;
+if(oldTheme) store.prefs.theme = oldTheme;
+if(oldText !== null && oldText !== undefined) store.prefs.text = oldText;
+}
+beenMap = store.been || {};
+ratings = store.ratings || {};
+notes = store.notes || {};
+persist();
+return !hadStoredState && ![beenMap, ratings, notes, store.prefs].some(data=>Object.keys(data).length>0);
+}
+function persist(){
+if(!store) store = blankStore();
+store.been = beenMap;
+store.ratings = ratings;
+store.notes = notes;
+store.schema = SCHEMA;
+store.updated = new Date().toISOString();
+const json = JSON.stringify(store);
+storageSet(STORE_KEY, json);
+try{ window.localStorage.setItem(STORE_KEY, json); }catch(e){}
+}
+function setPref(key, value){
+if(!store) store = blankStore();
+store.prefs = store.prefs || {};
+store.prefs[key] = value;
+persist();
+}
+function saveBeen(){ persist(); }
+function saveRatings(){ persist(); }
+function saveNotes(){ persist(); }
+// Belt and braces: flush again when the tab is closed or backgrounded.
+window.addEventListener('pagehide', persist);
+document.addEventListener('visibilitychange', ()=>{
+if(document.visibilityState === 'hidden') persist();
+});
+function toggleBeen(id){
+beenMap[id] = !beenMap[id];
+saveBeen();
+renderAll();
+}
+function rate(id, v){
+const e = ratings[id] || {sum:0, count:0, mine:0};
+// Tapping the star you already gave undoes the rating (mis-tap escape hatch).
+if(e.mine === v){ clearRate(id); return; }
+if(e.mine){ e.sum += v - e.mine; }
+else { e.sum += v; e.count += 1; }
+e.mine = v;
+ratings[id] = e;
+saveRatings();
+renderAll();
+}
+function clearRate(id){
+const e = ratings[id];
+if(!e || !e.mine) return;
+e.sum -= e.mine;
+e.count = Math.max(0, e.count - 1);
+e.mine = 0;
+if(e.count <= 0){ delete ratings[id]; } else { ratings[id] = e; }
+saveRatings();
+renderAll();
+}
+
+function matchesCampus(r){
+return state.zones.size===0 || state.zones.has(zoneOf(r));
+}
+function getFiltered(){
+return RESTAURANTS.filter(r=>{
+if(!matchesCampus(r)) return false;
+if(state.cuisine!=='all' && r.cuisine!==state.cuisine) return false;
+if(state.status==='open' && r.status==='Coming soon') return false;
+return true;
+});
+}
+function surpriseCandidates(){
+return getFiltered().filter(r=>!r.status && r.cuisine!=='kiosk');
+}
+function surprisePool(candidates){
+// Pick a campus first so campuses with fewer eligible eateries still get an equal chance.
+const zonesWithFood = ZONE_ORDER.filter(k=>candidates.some(r=>zoneOf(r)===k));
+if(zonesWithFood.length<2) return candidates;
+const z = zonesWithFood[Math.floor(Math.random()*zonesWithFood.length)];
+return candidates.filter(r=>zoneOf(r)===z);
+}
+function renderPickScope(){
+const el = document.getElementById('pickScope');
+const n = surpriseCandidates().length;
+const selected = ZONE_ORDER.filter(k=>state.zones.has(k)).map(zoneName);
+document.getElementById('surpriseBtn').disabled = n===0;
+el.innerHTML = selected.length===0 || selected.length===ZONE_ORDER.length
+? t('scopeAll').replace('{n}', n)
+: t('scopeZone').replace('{z}', new Intl.ListFormat(lang==='zh'?'zh-Hant-HK':'en').format(selected)).replace('{n}', n);
+}
+
+function renderRoute(){
+const track = document.getElementById('routeTrack');
+const focusedZone = track.contains(document.activeElement) ? document.activeElement.dataset.zone : null;
+track.innerHTML = Object.entries(ZONES).map(([k,z])=>{
+const rs = RESTAURANTS.filter(r=>z.regions.includes(r.region));
+const done = rs.filter(r=>beenMap[r.id]).length;
+return '<button class="stop" type="button" data-zone="' + k + '" aria-pressed="' + state.zones.has(k) + '">' +
+'<span class="stop-dot" aria-hidden="true"></span>' +
+'<span class="stop-name">' + zoneName(k) + '</span>' +
+'<span class="stop-sub">' + zoneSub(k) + '</span>' +
+'<span class="stop-count">' + done + '/' + rs.length + '</span>' +
+'</button>';
+}).join('');
+if(focusedZone) track.querySelector('[data-zone="' + focusedZone + '"]').focus({preventScroll:true});
+}
+function renderSelects(){
+const cSel = document.getElementById('cuisineSelect');
+cSel.innerHTML = '<option value="all">' + t('allCuisines') + '</option>' +
+Object.keys(CUISINES).map(k=>'<option value="' + k + '">' + (lang==='zh'?ZH_CUISINE[k]:CUISINES[k]) + '</option>').join('');
+cSel.value = state.cuisine;
+cSel.onchange = e=>{ state.cuisine = e.target.value; renderAll(); };
+const sSel = document.getElementById('statusSelect');
+sSel.innerHTML = '<option value="open">' + t('openNow') + '</option><option value="all">' + t('includeSoon') + '</option>';
+sSel.hidden = !RESTAURANTS.some(r=>r.status==='Coming soon');
+sSel.value = state.status;
+sSel.onchange = e=>{ state.status = e.target.value; renderAll(); };
+}
+
+function starsHtml(r){
+const e = ratings[r.id] || {sum:0, count:0, mine:0};
+const avg = e.count ? (e.sum / e.count) : 0;
+let stars = '';
+for(let i=1;i<=5;i++){
+stars += '<button class="star ' + (i<=e.mine?'lit':'') + '" data-rate="' + i + '" data-id="' + r.id +
+'" aria-label="' + t('rateAria').replace('{i}', i) + '">' + (i<=e.mine?'★':'☆') + '</button>';
+}
+const meta = e.count
+? '<strong>★ ' + avg.toFixed(1) + '</strong> · ' + (lang==='zh'
+? e.count + t('ratings')
+: e.count + ' ' + (e.count>1?t('ratings'):t('rating')))
+: t('noRatings');
+const clearBtn = e.mine
+? '<button class="rate-clear" data-clear="' + r.id + '">' + t('clearRate') + '</button>'
+: '';
+const tip = e.mine ? '<p class="rate-tip">' + t('rateTip') + '</p>' : '';
+return '<div class="rate-row"><p class="rate-label">' + t('rateLabel') + '</p>' +
+'<div class="stars">' + stars + '</div><span class="rate-meta">' + meta + '</span>' +
+clearBtn + tip + '</div>';
+}
+
+function noteHtml(r, inFeatured){
+const n = notes[r.id];
+if(editingNote?.id===r.id && editingNote.inFeatured===inFeatured){
+const val = n && n.text ? n.text : '';
+return '<div class="note-edit">' +
+'<textarea data-note-ta="' + r.id + '" maxlength="200" placeholder="' + t('notePh') + '">' + esc(val) + '</textarea>' +
+'<div class="note-tools">' +
+'<button class="note-save" data-note-save="' + r.id + '">' + t('noteSave') + '</button>' +
+'<button class="note-cancel" data-note-cancel="' + r.id + '">' + t('noteCancel') + '</button>' +
+'<span class="note-count" data-note-count="' + r.id + '">' + val.length + '/200</span>' +
+'</div>' +
+'<p class="note-hint">' + t('noteHint') + '</p>' +
+'</div>';
+}
+if(n && n.text){
+return '<div class="note-saved"><span class="note-pen">\u270e</span>' + esc(n.text) +
+'<span class="note-meta">' +
+'<button data-note-edit="' + r.id + '">' + t('editNote') + '</button>' +
+'<button data-note-del="' + r.id + '">' + t('delNote') + '</button>' +
+'</span></div>';
+}
+return '<div class="note-row"><button class="note-btn" data-note-add="' + r.id + '">' + t('addNote') + '</button></div>';
+}
+
+function photoHtml(r){
+const thumbs = (photosCache[r.id] || []).map(photo=>
+'<div class="photo-thumb"><button class="photo-view" type="button" aria-label="' + esc(t('viewPhoto')) +
+'"><img src="' + esc(photo.dataUrl) + '" alt="" loading="lazy"></button>' +
+'<button class="photo-del" type="button" data-photo-del="' + esc(photo.key) + '" aria-label="' + esc(t('delPhoto')) + '">×</button></div>'
+).join('');
+return '<div class="photo-row">' + thumbs +
+'<label class="photo-add">+<span>' + esc(t('addPhoto')) + '</span>' +
+'<input type="file" accept="image/*" multiple data-photo-input="' + r.id + '"></label></div>';
+}
+
+function siteUrl(r){
+// Official outlet page on catering.hku.hk (menus, photos, live opening hours).
+return PAGES[r.id] ? SITE + PAGES[r.id] + '/' : SITE;
+}
+function initialsOf(r){
+const n = (r.name || '').replace(/[^A-Za-z0-9 ]/g,' ').trim().split(/\s+/);
+if(!n.length || !n[0]) return '\u2022';
+return (n.length > 1 ? n[0][0] + n[1][0] : n[0].slice(0,2)).toUpperCase();
+}
+function thumbHtml(r){
+// A tinted monogram in the cuisine colour. Deliberately local: the HKU photo
+// URLs would not render off their own site, and a placeholder that always
+// works beats an image that sometimes does.
+return '<div class="thumb" aria-hidden="true" data-init="' + initialsOf(r) + '"></div>';
+}
+
+function cardHtml(r, inFeatured, recordsOpen){
+const isBeen = !!beenMap[r.id];
+const accent = accentOf(r);
+const orderUrl = r.orderViaHku ? siteUrl(r) : r.order;
+const orderLabel = r.orderViaHku ? 'orderViaHku' : r.onlineTakeaway ? 'orderTakeaway' : 'order';
+return '<div class="card ' + (isBeen?'been':'') + (r.status==='Coming soon'?' dim':'') +
+(pickedId===r.id?' picked':'') + '" data-card="' + r.id + '" style="--accent:' + accent + '">' +
+'<div class="card-top">' +
+thumbHtml(r) +
+'<div style="flex:1;min-width:0;">' +
+'<p class="card-name"><a href="' + siteUrl(r) + '" target="_blank" rel="noopener" title="' + t('siteAria') + '">' + nameOf(r) + '<span class="ext">\u2197</span></a></p>' +
+'<div class="tagrow">' +
+'<span class="tag cuisine">' + cuisineOf(r) + (subtagOf(r)?' · '+subtagOf(r):'') + '</span>' +
+(r.service ? '<span class="tag service">' + t(r.service) + '</span>' : '') +
+(r.status ? '<span class="tag status">' + statusOf(r) + '</span>' : '') +
+'</div>' +
+'<p class="sig">' + locOf(r) + '</p>' +
+(r.assemblyHallSeats ? '<p class="sig">' + t('assemblyHallSeats') + '</p>' : '') +
+'<p class="bldg">' + t('pinned') + bldgLabel(r) + '</p>' +
+'<div class="card-actions">' +
+'<a class="dir-link" href="' + r.dirUrl + '" target="_blank" rel="noopener">' + t('directions') + '</a>' +
+(orderUrl ? '<a class="dir-link order" href="' + orderUrl + '" target="_blank" rel="noopener">' + t(orderLabel) + '</a>' : '') +
+'</div>' +
+'</div>' +
+'<div class="been-wrap">' +
+'<button class="been-btn ' + (isBeen?'on':'') + '" data-id="' + r.id + '" title="' + t('beenTitle') +
+'" aria-label="' + t('beenTitle') + '" aria-pressed="' + (isBeen?'true':'false') + '"></button>' +
+'<span class="been-cap' + (isBeen?' on':'') + '">' + (isBeen?t('beenCapOn'):t('beenCap')) + '</span>' +
+'</div>' +
+'</div>' +
+'<details class="card-records"' + (recordsOpen?' open':'') + '>' +
+'<summary>' + esc(t('recordsLabel')) + '</summary>' +
+starsHtml(r) +
+noteHtml(r, inFeatured) +
+photoHtml(r) +
+'</details>' +
+'</div>';
+}
+
+function wireCard(scope){
+scope.querySelectorAll('.star').forEach(btn=>{
+btn.addEventListener('click', ()=>{
+const {id, rate: value} = btn.dataset;
+const hadFocus = btn===document.activeElement;
+rate(id, +value);
+if(hadFocus) scope.querySelector('.star[data-id="' + id + '"][data-rate="' + value + '"]').focus({preventScroll:true});
+});
+});
+scope.querySelectorAll('[data-clear]').forEach(btn=>{
+btn.addEventListener('click', ()=>{
+const id = btn.dataset.clear;
+const hadFocus = btn===document.activeElement;
+clearRate(id);
+if(hadFocus) scope.querySelector('[data-card="' + id + '"] summary').focus({preventScroll:true});
+});
+});
+scope.querySelectorAll('.been-btn').forEach(btn=>{
+btn.addEventListener('click', ()=>toggleBeen(btn.dataset.id));
+});
+scope.querySelectorAll('[data-note-add],[data-note-edit]').forEach(btn=>{
+btn.addEventListener('click', ()=>{
+editingNote = {id:btn.dataset.noteAdd || btn.dataset.noteEdit, inFeatured:scope.classList.contains('featured-body')};
+renderAll();
+});
+});
+scope.querySelectorAll('[data-note-cancel]').forEach(btn=>{
+btn.addEventListener('click', ()=>{ editingNote = null; renderAll(); });
+});
+scope.querySelectorAll('[data-note-del]').forEach(btn=>{
+btn.addEventListener('click', ()=>{
+delete notes[btn.dataset.noteDel];
+saveNotes(); editingNote = null; renderAll();
+});
+});
+scope.querySelectorAll('[data-note-save]').forEach(btn=>{
+btn.addEventListener('click', ()=>{
+const id = btn.dataset.noteSave;
+const ta = scope.querySelector('[data-note-ta="' + id + '"]');
+const v = ta ? ta.value.trim().slice(0,200) : '';
+if(v){ notes[id] = {text:v, ts:Date.now()}; } else { delete notes[id]; }
+saveNotes(); editingNote = null; renderAll();
+});
+});
+scope.querySelectorAll('[data-note-ta]').forEach(ta=>{
+ta.addEventListener('input', ()=>{
+const c = scope.querySelector('[data-note-count="' + ta.dataset.noteTa + '"]');
+if(c) c.textContent = ta.value.length + '/200';
+});
+const end = ta.value.length;
+ta.focus();
+try{ ta.setSelectionRange(end, end); }catch(e){}
+});
+scope.querySelectorAll('[data-photo-input]').forEach(input=>{
+input.addEventListener('change', async ()=>{
+for(const file of Array.from(input.files)) await addPhoto(input.dataset.photoInput, file);
+renderAll();
+});
+});
+scope.querySelectorAll('[data-photo-del]').forEach(button=>{
+button.addEventListener('click', async ()=>{
+await deletePhoto(button.closest('[data-card]').dataset.card, button.dataset.photoDel);
+renderAll();
+});
+});
+scope.querySelectorAll('.photo-view').forEach(button=>{
+button.addEventListener('click', ()=>{
+document.getElementById('previewImage').src = button.querySelector('img').src;
+document.getElementById('photoPreview').showModal();
+});
+});
+}
+
+function renderFeatured(newPick = false){
+const slot = document.getElementById('featuredSlot');
+if(!featured){
+slot.innerHTML='';
+document.body.style.overflow='';
+return;
+}
+const opening = !slot.firstElementChild;
+if(opening){
+slot.innerHTML = '<div class="sheet-backdrop" id="sheetBackdrop"></div>' +
+'<div class="featured" role="dialog" aria-modal="true" aria-labelledby="featuredLabel">' +
+'<div class="sheet-grab"></div>' +
+'<p class="featured-label" id="featuredLabel" tabindex="-1"></p>' +
+'<div class="featured-status" role="status"></div>' +
+'<div class="featured-body"></div>' +
+'<div class="featured-actions">' +
+'<button class="btn-secondary pick-action" id="tryAnother" type="button"></button>' +
+'<button class="btn-secondary" id="dismissFeatured" type="button"></button>' +
+'</div>' +
+'</div>';
+document.body.style.overflow='hidden';
+document.getElementById('tryAnother').addEventListener('click', pickSurprise);
+const close = ()=>{
+const id = featured.id;
+featured=null;
+renderFeatured();
+document.getElementById('surpriseBtn').focus({preventScroll:true});
+const card = document.querySelector('#list [data-card="' + id + '"]');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(card) card.scrollIntoView({behavior:reduceMotion?'instant':'smooth', block:'center'});
+};
+document.getElementById('dismissFeatured').addEventListener('click', close);
+document.getElementById('sheetBackdrop').addEventListener('click', close);
+slot.querySelector('.featured').addEventListener('keydown', event=>{
+if(event.key==='Escape'){
+event.preventDefault();
+close();
+}
+});
+}
+const label = document.getElementById('featuredLabel');
+label.textContent = t('todaysPick') + zoneLabel(featured);
+const another = document.getElementById('tryAnother');
+another.textContent = t('tryAnother');
+another.disabled = !surpriseCandidates().some(r=>r.id!==featured.id);
+document.getElementById('dismissFeatured').textContent = t('close');
+const body = slot.querySelector('.featured-body');
+const scrollTop = body.scrollTop;
+const recordsOpen = !newPick && !!body.querySelector('.card-records[open]');
+body.innerHTML = cardHtml(featured, true, recordsOpen);
+body.scrollTop = newPick ? 0 : scrollTop;
+wireCard(body);
+if(opening) label.focus({preventScroll:true});
+if(newPick) slot.querySelector('.featured-status').textContent = nameOf(featured);
+}
+
+function pickSurprise(){
+const candidates = surpriseCandidates().filter(r=>r.id!==featured?.id);
+const pool = surprisePool(candidates);
+if(!pool.length) return;
+const list = document.getElementById('list');
+list.querySelector('.card.picked')?.classList.remove('picked');
+featured = pool[Math.floor(Math.random()*pool.length)];
+pickedId = featured.id;
+list.querySelector('[data-card="' + pickedId + '"]')?.classList.add('picked');
+renderFeatured(true);
+}
+
+function renderList(){
+const pool = getFiltered();
+const listEl = document.getElementById('list');
+const openRecords = new Set(Array.from(listEl.querySelectorAll('.card-records[open]'), details=>details.closest('[data-card]').dataset.card));
+const doneCount = RESTAURANTS.filter(r=>beenMap[r.id]).length;
+const ratedCount = RESTAURANTS.filter(r=>ratings[r.id]?.count>0).length;
+document.getElementById('countText').innerHTML =
+t('count').replace('{d}', doneCount).replace('{t}', RESTAURANTS.length).replace('{r}', ratedCount);
+if(pool.length===0){
+listEl.innerHTML = '<div class="empty">' + t('empty') + '</div>';
+return;
+}
+// Eateries are always listed under their own campus heading, so a pick and
+// its neighbours stay grouped together.
+listEl.innerHTML = ZONE_ORDER.map(k=>{
+const rows = pool.filter(r=>zoneOf(r)===k);
+if(!rows.length) return '';
+const z = ZONES[k];
+const been = rows.filter(r=>beenMap[r.id]).length;
+return '<section class="zone-group">' +
+'<div class="zone-head"><h2>' + zoneName(k) + '</h2>' +
+'<span class="zone-sub">' + zoneSub(k) + '</span>' +
+'<span class="zone-meta">' + been + '/' + rows.length + ' ' + t('explored') + '</span></div>' +
+'<div class="zone-list">' + rows.map(r=>cardHtml(r, false, openRecords.has(r.id))).join('') + '</div>' +
+'</section>';
+}).join('');
+wireCard(listEl);
+}
+
+// Rank thresholds index into t('ppRanks'). Deliberately generous early on
+// (one stamp already promotes you) so the box reads as encouragement
+// rather than a chore chart.
+const RANK_STEPS = [0, 1, 3, 6, 10, 15, 20, 27];
+
+function renderPassport(){
+const slot = document.getElementById('passportSlot');
+if(!slot) return;
+const total = RESTAURANTS.length;
+const tried = RESTAURANTS.filter(r=>beenMap[r.id]).length;
+const ranks = t('ppRanks');
+let tier = 0;
+for(let i=0;i<RANK_STEPS.length;i++){ if(tried >= RANK_STEPS[i]) tier = i; }
+const rank = ranks[tier];
+const pct = Math.round((tried / total) * 100);
+
+let nudge;
+if(tried === 0){ nudge = t('ppStart'); }
+else if(tried >= total){ nudge = t('ppDone'); }
+else {
+const nextStep = RANK_STEPS.find(v=>v > tried);
+const target = nextStep === undefined ? total : nextStep;
+const nextRank = ranks[Math.min(ranks.length-1, tier+1)];
+nudge = t('ppNudge').replace('{k}', target - tried).replace('{rank}', nextRank);
+}
+
+const chips = ZONE_ORDER.map(k=>{
+const rows = RESTAURANTS.filter(r=>zoneOf(r)===k);
+const n = rows.filter(r=>beenMap[r.id]).length;
+return '<div class="pp-chip"><b>' + n + '/' + rows.length + '</b><span>' + zoneName(k) + '</span></div>';
+}).join('');
+
+const rated = RESTAURANTS.filter(r=>ratings[r.id]?.mine).length;
+const noted = RESTAURANTS.filter(r=>notes[r.id]?.text).length;
+
+slot.innerHTML =
+'<section class="passport">' +
+'<p class="pp-eyebrow">' + t('ppEyebrow') + '</p>' +
+'<p class="pp-rank">' + rank + '</p>' +
+'<p class="pp-score">' + t('ppScore').replace('{n}', '<b>' + tried + '</b>').replace('{t}', total) + '</p>' +
+'<div class="pp-bar"><span style="width:' + pct + '%"></span></div>' +
+'<p class="pp-nudge">' + nudge + '</p>' +
+'<div class="pp-campus">' + chips + '</div>' +
+'<p class="pp-stats">' +
+'<span>\u2605 <em>' + t('ppRated').replace('{n}', rated) + '</em></span>' +
+'<span>\u270e <em>' + t('ppNoted').replace('{n}', noted) + '</em></span>' +
+'</p>' +
+'<p class="pp-device">' + t('ppDevice') + '</p>' +
+'</section>';
+}
+
+function exportData(){
+const dateStr = new Date().toLocaleDateString(lang==='zh'?'zh-HK':'en-US', {year:'numeric',month:'long',day:'numeric'});
+const items = RESTAURANTS.filter(r=> beenMap[r.id] || ratings[r.id] || (notes[r.id]&&notes[r.id].text) || (photosCache[r.id]&&photosCache[r.id].length));
+let body = '';
+items.forEach(r=>{
+const e = ratings[r.id];
+const avg = e && e.count ? (e.sum/e.count).toFixed(1) : null;
+const note = notes[r.id] && notes[r.id].text;
+const photos = photosCache[r.id] || [];
+body += '<div class="item">' +
+'<div class="name">' + esc(nameOf(r)) + '</div>' +
+'<div class="meta">' + (beenMap[r.id] ? t('exportTried') : '') + (avg ? ' &middot; \u2605 ' + avg : '') + '</div>' +
+(note ? '<div class="note">' + esc(note) + '</div>' : '') +
+(photos.length ? '<div class="photos">' + photos.map(p=>'<img src="' + esc(p.dataUrl) + '">').join('') + '</div>' : '') +
+'</div>';
+});
+const title = t('exportTitle');
+const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(title) + '</title>' +
+'<style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:640px;margin:40px auto;padding:0 20px;color:#222;background:#fff}' +
+'h1{font-size:22px;margin-bottom:2px}.exp-date{color:#999;font-size:13px;margin-bottom:24px}' +
+'.item{border-bottom:1px solid #eee;padding:18px 0}.name{font-weight:700;font-size:16px}' +
+'.meta{color:#888;font-size:13px;margin:4px 0}.note{margin:8px 0;white-space:pre-wrap;font-size:14px}' +
+'.photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}' +
+'.photos img{width:140px;height:140px;object-fit:cover;border-radius:8px}</style>' +
+'</head><body>' +
+'<h1>' + esc(title) + '</h1>' +
+'<div class="exp-date">' + esc(t('exportedOn')) + ' ' + dateStr + '</div>' +
+(body || '<p>' + esc(t('exportEmpty')) + '</p>') +
+'</body></html>';
+const blob = new Blob([html], {type:'text/html'});
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'hku-eats-' + new Date().toISOString().slice(0,10) + '.html';
+document.body.appendChild(a);
+a.click();
+a.remove();
+setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+function renderSavedNotes(){
+const dateFormat = new Intl.DateTimeFormat(lang==='zh'?'zh-HK':'en-GB',{dateStyle:'medium'});
+const savedNotes = Object.entries(notes)
+.filter(([,note])=>typeof note?.text==='string' && note.text.trim())
+.map(([id,note])=>({id,text:note.text,updatedAt:new Date(note.ts ?? NaN).getTime() || 0}))
+.sort((a,b)=>b.updatedAt-a.updatedAt);
+document.getElementById('savedEmpty').hidden = savedNotes.length>0;
+document.getElementById('savedNotes').innerHTML = savedNotes.map(({id,text,updatedAt})=>{
+const outlet = RESTAURANTS.find(r=>r.id===id);
+const title = outlet ? nameOf(outlet) : id==='pizza-express-sr' ? 'Pizza Express Kiosk' : t('savedFormer');
+const campus = outlet ? zoneLabel(outlet) : id==='pizza-express-sr' ? zoneName('sr') : '';
+const date = updatedAt ? new Date(updatedAt) : null;
+const metadata = (campus ? '<span>' + esc(campus) + '</span>' : '') +
+(date ? '<time datetime="' + date.toISOString() + '">' + esc(dateFormat.format(date)) + '</time>' : '');
+return '<li class="saved-note"><h2>' + esc(title) + '</h2>' +
+(metadata ? '<p class="saved-note-meta">' + metadata + '</p>' : '') +
+'<p class="saved-note-text">' + esc(text) + '</p></li>';
+}).join('');
+}
+
+function syncSavedView(moveFocus = false){
+const showSaved = location.hash==='#saved';
+const view = document.getElementById('saved');
+const savedLink = document.getElementById('savedLink');
+if(showSaved && featured){
+featured = null;
+renderFeatured();
+}
+view.hidden = !showSaved;
+document.getElementById('browse').hidden = showSaved;
+savedLink.hidden = showSaved;
+if(showSaved) renderSavedNotes();
+if(moveFocus){
+window.scrollTo(0,0);
+(showSaved ? document.getElementById('savedTitle') : savedLink).focus({preventScroll:true});
+}
+}
+
+function renderAll(){
+applyChrome();
+renderRoute();
+renderSelects();
+renderPickScope();
+renderFeatured();
+renderList();
+renderPassport();
+if(!document.getElementById('saved').hidden) renderSavedNotes();
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportData);
+document.getElementById('photoPreview').addEventListener('close', ()=>document.getElementById('previewImage').removeAttribute('src'));
+window.addEventListener('hashchange', ()=>syncSavedView(true));
+document.getElementById('routeTrack').addEventListener('click', event=>{
+const button = event.target.closest('[data-zone]');
+if(!button) return;
+const zone = button.dataset.zone;
+if(!state.zones.delete(zone)) state.zones.add(zone);
+if(featured && !matchesCampus(featured)){ featured=null; pickedId=null; }
+renderAll();
+});
+document.getElementById('allZonesBtn').addEventListener('click', ()=>{ state.zones.clear(); renderAll(); });
+document.getElementById('surpriseBtn').addEventListener('click', pickSurprise);
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+if(confirm(t('resetConfirm'))){
+beenMap = {};
+saveBeen();
+renderAll();
+}
+});
+
+document.getElementById('textBtn').addEventListener('click', ()=>{
+textStep = (textStep + 1) % TEXT_STEPS.length;
+setPref('text', String(textStep));
+renderAll();
+});
+function switchLanguage(){
+lang = lang==='en' ? 'zh' : 'en';
+setPref('lang', lang);
+nameInput.setCustomValidity('');
+renderAll();
+}
+document.getElementById('langBtn').addEventListener('click', switchLanguage);
+document.getElementById('nameLangBtn').addEventListener('click', switchLanguage);
+document.getElementById('editNameBtn').addEventListener('click', ()=>openNameDialog());
+document.getElementById('skipNameBtn').addEventListener('click', ()=>nameDialog.close());
+nameInput.addEventListener('input', ()=>nameInput.setCustomValidity(''));
+document.getElementById('nameForm').addEventListener('submit', event=>{
+event.preventDefault();
+const name = nameInput.value.trim();
+if(!name){
+nameInput.setCustomValidity(t('nameRequired'));
+nameInput.reportValidity();
+return;
+}
+setPref('displayName', name);
+nameDialog.close();
+renderNameCopy();
+});
+nameDialog.addEventListener('close', ()=>{
+if(firstNamePrompt && store.prefs.displayName===undefined) setPref('displayName', '');
+firstNamePrompt = false;
+});
+document.getElementById('themeBtn').addEventListener('click', ()=>{
+theme = theme==='dark' ? 'light' : 'dark';
+setPref('theme', theme);
+renderAll();
+});
+
+(async function init(){
+const firstVisit = await loadState();
+await loadPhotosCache();
+const savedLang = (store.prefs && store.prefs.lang) || await storageGet('hku-lang');
+if(savedLang==='zh' || savedLang==='en') lang = savedLang;
+const savedTheme = (store.prefs && store.prefs.theme) || await storageGet('hku-theme');
+if(savedTheme==='light' || savedTheme==='dark') theme = savedTheme;
+const savedText = parseInt((store.prefs && store.prefs.text) !== undefined ? store.prefs.text : await storageGet('hku-text'), 10);
+if(savedText >= 0 && savedText < TEXT_STEPS.length) textStep = savedText;
+renderAll();
+syncSavedView();
+if(firstVisit) openNameDialog(true);
+})();
+document.getElementById('shareBtnLabel').textContent = t('shareBtn');
+document.getElementById('shareBtn').addEventListener('click', async ()=>{
+const url = 'https://what-to-eat-hku.u3563470.workers.dev/';
+if(navigator.share){
+try{ await navigator.share({title:document.title, url}); }catch(e){}
+}else{
+try{
+await navigator.clipboard.writeText(url);
+const toast = document.getElementById('shareToast');
+toast.textContent = t('shareToast');
+toast.classList.add('show');
+setTimeout(()=>toast.classList.remove('show'), 2200);
+}catch(e){}
+}
+});
+</script>
+
+
+</body></html>
